@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<cinder>
+<block
+    name="Cinder-Pipeline"
+    id="com.chordedconstructions.fleshworld.cinder-pipeline"
+    git="https://github.com/pizthewiz/Cinder-Pipeline.git"
+    author="Jean-Pierre Mouilleseaux"
+    summary="Chain effector passes"
+    url="https://github.com/pizthewiz/Cinder-Pipeline"
+    >
+    <supports os="macosx" />
+    <headerPattern>src/*.h</headerPattern>
+    <sourcePattern>src/*.cpp</sourcePattern>
+</block>
+</cinder>
