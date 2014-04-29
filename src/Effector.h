@@ -21,8 +21,8 @@ class Effector {
 public:
     ~Effector() {}
 
-    virtual void execute(gl::Fbo& inputFBO, int inputFBOAttachment, gl::Fbo& outputFBO, int outputFBOAttachment) {}
-    virtual void execute(gl::Fbo& inputFBO, int inputFBOAttachment, gl::Fbo& inputAltFBO, int inputAltFBOAttachment, gl::Fbo& outputFBO, int outputFBOAttachment) {}
+    virtual void execute(gl::Fbo& inputFBO, const int inputFBOAttachment, gl::Fbo& outputFBO, const int outputFBOAttachment) {}
+    virtual void execute(gl::Fbo& inputFBO, const int inputFBOAttachment, gl::Fbo& inputAltFBO, const int inputAltFBOAttachment, gl::Fbo& outputFBO, const int outputFBOAttachment) {}
     // properties
     //  inputs
     //  mask input
