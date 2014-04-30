@@ -7,7 +7,6 @@
 
 ### EFFECTOR
 - don't recreate shaders, a single static one might be fine
-- add blur effector
 - publish inputs and outputs for chaining
 - some API to connect inputs and outputs
 - if not using ci::gl::GlslProg, consider using GL_ARB_separate_shader_objects when supported
