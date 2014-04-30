@@ -12,5 +12,5 @@
     #error Target platform unsupported by Cinder-Pipeline
 #endif
 
-#include "Effector.h"
+#include "Node.h"
 #include "Pipeline.h"

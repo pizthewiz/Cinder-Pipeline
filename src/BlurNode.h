@@ -1,5 +1,5 @@
 //
-//  BlurEffector.h
+//  BlurNode.h
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 22 Apr 2014.
@@ -8,16 +8,16 @@
 
 #pragma once
 
-#include "Effector.h"
+#include "Node.h"
 
 using namespace Cinder::Pipeline;
 
-typedef std::shared_ptr<class BlurEffector> BlurEffectorRef;
+typedef std::shared_ptr<class BlurNode> BlurNodeRef;
 
-class BlurEffector : public Effector, public std::enable_shared_from_this<BlurEffector> {
+class BlurNode : public Node, public std::enable_shared_from_this<BlurNode> {
 public:
-    static BlurEffectorRef create();
-    ~BlurEffector();
+    static BlurNodeRef create();
+    ~BlurNode();
 
     void execute(gl::Fbo& inputFBO, const int inputFBOAttachment, gl::Fbo& outputFBO, const int outputFBOAttachment);
 
@@ -25,7 +25,7 @@ public:
     Vec2f sampleOffset() const { return mSampleOffset; }
 
 private:
-    BlurEffector();
+    BlurNode();
 
     Vec2f mSampleOffset;
 };

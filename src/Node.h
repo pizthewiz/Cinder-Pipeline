@@ -1,5 +1,5 @@
 //
-//  Effector.h
+//  Node.h
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 19 Apr 2014.
@@ -15,11 +15,11 @@ namespace Cinder { namespace Pipeline {
 
 using namespace ci;
 
-typedef std::shared_ptr<class Effector> EffectorRef;
+typedef std::shared_ptr<class Node> NodeRef;
 
-class Effector {
+class Node {
 public:
-    ~Effector() {}
+    ~Node() {}
 
     virtual void execute(gl::Fbo& inputFBO, const int inputFBOAttachment, gl::Fbo& outputFBO, const int outputFBOAttachment) {}
     virtual void execute(gl::Fbo& inputFBO, const int inputFBOAttachment, gl::Fbo& inputAltFBO, const int inputAltFBOAttachment, gl::Fbo& outputFBO, const int outputFBOAttachment) {}
@@ -31,14 +31,15 @@ public:
     //  ? needs intermediate FBO (for multi-pass)
 
 protected:
-    Effector() {}
-    Effector(DataSourceRef vertexShader, DataSourceRef fragmentShader);
-    Effector(const std::string& vertexShader, const std::string& fragmentShader);
+    Node() {}
+    Node(DataSourceRef vertexShader, DataSourceRef fragmentShader);
+    Node(const std::string& vertexShader, const std::string& fragmentShader);
 
     void setupShader(const std::string& vertexShader, const std::string& fragmentShader);
 
     static const std::string sVertexShaderPassThrough;
     gl::GlslProgRef mShader;
+    static gl::GlslProgRef sShader;
 };
 
 }}

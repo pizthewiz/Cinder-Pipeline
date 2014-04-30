@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Effector.h"
+//#include "Node.h"
 #include "cinder/gl/Fbo.h"
 
 namespace Cinder { namespace Pipeline {
@@ -23,7 +23,7 @@ public:
 private:
     Pipeline();
 
-    gl::Fbo mFBO;
+//    gl::Fbo mFBO;
 };
 
 }}
