@@ -5,7 +5,7 @@
     id="com.chordedconstructions.fleshworld.cinder-pipeline"
     git="https://github.com/pizthewiz/Cinder-Pipeline.git"
     author="Jean-Pierre Mouilleseaux"
-    summary="Chain effector passes"
+    summary="Chain and evaluate shader-based image effectors"
     url="https://github.com/pizthewiz/Cinder-Pipeline"
     >
     <supports os="macosx" />
