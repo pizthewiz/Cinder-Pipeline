@@ -45,7 +45,7 @@ const std::string FragmentShaderBlur = R"(
 )";
 
 BlurNodeRef BlurNode::create() {
-    return BlurNodeRef(new BlurNode())->shared_from_this();
+    return BlurNodeRef(new BlurNode());
 }
 
 BlurNode::BlurNode() {
