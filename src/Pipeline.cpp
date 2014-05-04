@@ -115,6 +115,32 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
         }
     }
 
+    // ASCII visualization
+    cinder::app::console() << "" << std::endl;
+    unsigned int count = 0;
+    for (std::deque<NodeRef> branch : branches) {
+        if (branch.at(0)->getInputNodes().size() != 0) {
+            unsigned int spaceCount = count * 5 + count * 3;
+            cinder::app::console() << std::string(spaceCount, ' ');
+        }
+
+        for (NodeRef node : branch) {
+            if (node->getInputNodes().empty()) {
+                cinder::app::console() << "[SRC]";
+            } else {
+                cinder::app::console() << "[???]";
+            }
+            cinder::app::console() << " > ";
+        }
+        cinder::app::console() << std::endl;
+
+        if (count == 0 || branch.size() > count) {
+            count = branch.size();
+        } else if (branch.at(0)->getInputNodes().size() != 0) {
+            count += branch.size();
+        }
+    }
+
     // render branches
     unsigned int outAttachment = 0;
     mFBO.bindFramebuffer(); {
