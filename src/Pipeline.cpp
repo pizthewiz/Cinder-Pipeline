@@ -115,6 +115,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
         }
     }
 
+#if defined(DEBUG)
     // ASCII visualization
     cinder::app::console() << "" << std::endl;
     unsigned int count = 0;
@@ -125,12 +126,9 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
         }
 
         for (NodeRef node : branch) {
-            if (node->getInputNodes().empty()) {
-                cinder::app::console() << "[SRC]";
-            } else {
-                cinder::app::console() << "[???]";
-            }
-            cinder::app::console() << " > ";
+            std::string name = node->getName();
+            name.resize(3);
+            cinder::app::console() << "[" << name << "] > ";
         }
         cinder::app::console() << std::endl;
 
@@ -140,6 +138,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
             count += branch.size();
         }
     }
+#endif
 
     // render branches
     unsigned int outAttachment = 0;

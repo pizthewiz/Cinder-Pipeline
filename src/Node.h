@@ -24,6 +24,8 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 public:
     virtual ~Node() {}
 
+    virtual std::string getName() const { return "UNKNOWN"; }
+
     virtual void connectOutputNode(const NodeRef& node);
     virtual void disconnectOutputNode(const NodeRef& node);
 
@@ -58,6 +60,8 @@ public:
     static SourceNodeRef create(const gl::TextureRef& texture);
     virtual ~SourceNode() {}
 
+    virtual std::string getName() const { return "Source"; }
+
     virtual void render(gl::Fbo& outFBO, const int outAttachment);
 
     void setTexture(gl::TextureRef& texture) { mTexture = texture; }
@@ -76,6 +80,8 @@ protected:
 class EffectorNode : public Node {
 public:
     virtual ~EffectorNode() {}
+
+    virtual std::string getName() const { return "EFFECTOR"; }
 
     virtual void render(gl::Fbo& inFBO, const int inAttachment, gl::Fbo& outFBO, const int outAttachment) {}
     virtual void render(gl::Fbo& inFBO, const int inAttachment, gl::Fbo& inAltFBO, const int inAltAttachment, gl::Fbo& outFBO, const int outAttachment) {}

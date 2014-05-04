@@ -19,6 +19,8 @@ public:
     static BlurNodeRef create();
     ~BlurNode();
 
+    virtual std::string getName() const { return "Blur"; }
+
     void render(gl::Fbo& inputFBO, const int inputFBOAttachment, gl::Fbo& outputFBO, const int outputFBOAttachment);
 
     void setSampleOffset(Vec2f sampleOffset) { mSampleOffset = sampleOffset; }

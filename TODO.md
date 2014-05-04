@@ -9,5 +9,4 @@
 
 ### GENERAL
 - include a sample application
-- ascii debug visualization of pipeline
 - check that a node setting could be animated via Timeline
