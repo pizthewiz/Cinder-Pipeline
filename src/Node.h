@@ -31,6 +31,10 @@ public:
     std::vector<NodeRef> getInputNodes() const { return mInputNodes; }
     std::vector<NodeRef> getOutputNodes() const { return mOutputNodes; }
 
+    virtual void render(gl::Fbo& outFBO, const int outAttachment) {}
+    virtual void render(gl::Fbo& inFBO, const int inAttachment, gl::Fbo& outFBO, const int outAttachment) {}
+    virtual void render(gl::Fbo& inFBO, const int inAttachment, gl::Fbo& inAltFBO, const int inAltAttachment, gl::Fbo& outFBO, const int outAttachment) {}
+
 protected:
     Node() {}
 
@@ -54,10 +58,10 @@ public:
     static SourceNodeRef create(const gl::TextureRef& texture);
     virtual ~SourceNode() {}
 
+    virtual void render(gl::Fbo& outFBO, const int outAttachment);
+
     void setTexture(gl::TextureRef& texture) { mTexture = texture; }
     gl::TextureRef& getTexture() { return mTexture; }
-
-    void render(gl::Fbo& fbo, const int attachment);
 
 protected:
     SourceNode() {}

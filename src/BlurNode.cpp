@@ -55,15 +55,13 @@ BlurNode::BlurNode() {
 BlurNode::~BlurNode() {
 }
 
-void BlurNode::execute(gl::Fbo& inputFBO, const int inputFBOAttachment, gl::Fbo& outputFBO, const int outputFBOAttachment) {
-	outputFBO.bindFramebuffer(); {
-        glDrawBuffer(GL_COLOR_ATTACHMENT0 + outputFBOAttachment);
-        inputFBO.bindTexture(0, inputFBOAttachment); {
-            mShader->bind(); {
-                mShader->uniform("image", 0);
-                mShader->uniform("sampleOffset", mSampleOffset);
-                gl::drawSolidRect(outputFBO.getBounds());
-            } mShader->unbind();
-        } inputFBO.unbindTexture();
-    } outputFBO.unbindFramebuffer();
+void BlurNode::render(gl::Fbo& inputFBO, const int inputFBOAttachment, gl::Fbo& outputFBO, const int outputFBOAttachment) {
+    glDrawBuffer(GL_COLOR_ATTACHMENT0 + outputFBOAttachment);
+    inputFBO.bindTexture(0, inputFBOAttachment); {
+        mShader->bind(); {
+            mShader->uniform("image", 0);
+            mShader->uniform("sampleOffset", mSampleOffset);
+            gl::drawSolidRect(outputFBO.getBounds());
+        } mShader->unbind();
+    } inputFBO.unbindTexture();
 }

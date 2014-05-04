@@ -29,7 +29,7 @@ void Node::disconnectInputNode(const NodeRef& node) {
     mInputNodes.erase(std::find(mInputNodes.begin(), mInputNodes.end(), node));
 }
 
-#pragma mark - INPUT
+#pragma mark - SOURCE
 
 SourceNodeRef SourceNode::create() {
     return SourceNodeRef(new SourceNode());
@@ -39,8 +39,8 @@ SourceNodeRef SourceNode::create(const gl::TextureRef& texture) {
     return SourceNodeRef(new SourceNode(texture));
 }
 
-void SourceNode::render(gl::Fbo &fbo, const int attachment) {
-    glDrawBuffer(GL_COLOR_ATTACHMENT0 + attachment);
+void SourceNode::render(gl::Fbo& outFBO, const int outAttachment) {
+    glDrawBuffer(GL_COLOR_ATTACHMENT0 + outAttachment);
     gl::draw(mTexture);
 }
 

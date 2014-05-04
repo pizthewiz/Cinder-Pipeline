@@ -8,7 +8,8 @@
 
 #pragma once
 
-//#include "Node.h"
+#include "Node.h"
+#include "cinder/gl/Texture.h"
 #include "cinder/gl/Fbo.h"
 
 namespace Cinder { namespace Pipeline {
@@ -20,10 +21,14 @@ public:
     static PipelineRef create();
     ~Pipeline();
 
+    void setup(const Vec2i size);
+
+    gl::Texture& evaluate(const NodeRef& node);
+
 private:
     Pipeline();
 
-//    gl::Fbo mFBO;
+    gl::Fbo mFBO;
 };
 
 }}

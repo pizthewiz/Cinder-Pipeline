@@ -18,6 +18,14 @@ PipelineRef Pipeline::create() {
 }
 
 Pipeline::Pipeline() {
+}
+
+Pipeline::~Pipeline() {
+}
+
+#pragma mark -
+
+void Pipeline::setup(const Vec2i size) {
 #if defined(DEBUG)
     const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     cinder::app::console() << "GL_RENDERER: " << renderer << std::endl;
@@ -48,11 +56,115 @@ Pipeline::Pipeline() {
     cinder::app::console() << "GL_MAX_TEXTURE_IMAGE_UNITS: " << texSize << std::endl;
     glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &texSize);
     cinder::app::console() << "GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: " << texSize << std::endl;
+    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &texSize);
+    cinder::app::console() << "GL_MAX_COLOR_ATTACHMENTS: " << texSize << std::endl;
     cinder::app::console() << "-------------" << std::endl;
 #endif
+
+    gl::Fbo::Format format;
+    format.enableColorBuffer(true, 3);
+    format.enableDepthBuffer(false);
+//    format.setWrap(GL_CLAMP, GL_CLAMP);
+//    format.setMagFilter(GL_NEAREST);
+//    format.setMinFilter(GL_LINEAR);
+
+    mFBO = gl::Fbo(size.x, size.y, format);
+    mFBO.bindFramebuffer(); {
+        const GLenum buffers[3] = {GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2};
+        glDrawBuffers(3, buffers);
+        gl::setViewport(mFBO.getBounds());
+        gl::clear();
+    } mFBO.unbindFramebuffer();
+
+//    for (size_t idx = 0; idx < 3; ++idx) {
+//        mFBO.getTexture(idx).setWrap(GL_CLAMP, GL_CLAMP);
+//    }
 }
 
-Pipeline::~Pipeline() {
+gl::Texture& Pipeline::evaluate(const NodeRef& node) {
+    // build branch list
+    std::deque<std::deque<NodeRef>> branches;
+    std::deque<NodeRef> branch;
+    std::deque<NodeRef> stack;
+
+    NodeRef n = node;
+    while (n) {
+        branch.push_front(n);
+
+        // TODO - replace with RTTI to determine if n is a SourceNodeRef
+        if (n->getInputNodes().empty()) {
+            branches.push_front(branch);
+            branch = std::deque<NodeRef>();
+
+            if (stack.empty()) {
+                n = nullptr;
+            } else {
+                n = stack.front();
+                stack.pop_front();
+            }
+        } else {
+            if (n->getInputNodes().size() > 1) {
+                branches.push_front(branch);
+                branch = std::deque<NodeRef>();
+
+                stack.push_front(n->getInputNodes()[0]);
+                n = n->getInputNodes()[1];
+            } else {
+                n = n->getInputNodes()[0];
+            }
+        }
+    }
+
+    // render branches
+    unsigned int outAttachment = 0;
+    mFBO.bindFramebuffer(); {
+        gl::pushMatrices(); {
+            gl::setMatricesWindow(mFBO.getSize(), false);
+
+            std::vector<int> attachments = {0, 1, 2};
+            std::vector<int> storedAttachments;
+
+            for (std::deque<NodeRef> branch : branches) {
+                size_t attachmentIndex = 0;
+                outAttachment = attachments.at(attachmentIndex);
+                int inAttachment = -1;
+                int inAltAttachment = -1;
+
+                for (NodeRef n : branch) {
+                    switch (n->getInputNodes().size()) {
+                        case 0:
+                            n->render(mFBO, outAttachment);
+                            inAttachment = outAttachment;
+                            break;
+                        case 1:
+                            attachmentIndex = (attachmentIndex + 1) % attachments.size();
+                            outAttachment = attachments.at(attachmentIndex);
+                            n->render(mFBO, inAttachment, mFBO, outAttachment);
+                            inAttachment = outAttachment;
+                            break;
+                        case 2:
+                            inAttachment = storedAttachments.at(0);
+                            inAltAttachment = storedAttachments.at(1);
+
+                            storedAttachments.clear();
+                            attachments = {0, 1, 2};
+                            attachmentIndex = outAttachment;
+
+                            n->render(mFBO, inAttachment, mFBO, inAltAttachment, mFBO, outAttachment);
+                            inAttachment = outAttachment;
+                            break;
+                        default:
+                            break;
+                    }
+                }
+
+                storedAttachments.push_back(outAttachment);
+                attachments.erase(std::find(attachments.begin(), attachments.end(), outAttachment));
+            }
+        } gl::popMatrices();
+    } mFBO.unbindFramebuffer();
+
+    return mFBO.getTexture(outAttachment);
 }
 
 }}
