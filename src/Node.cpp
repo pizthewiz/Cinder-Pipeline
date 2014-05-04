@@ -35,7 +35,7 @@ SourceNodeRef SourceNode::create() {
     return SourceNodeRef(new SourceNode());
 }
 
-SourceNodeRef SourceNode::create(gl::TextureRef& texture) {
+SourceNodeRef SourceNode::create(const gl::TextureRef& texture) {
     return SourceNodeRef(new SourceNode(texture));
 }
 

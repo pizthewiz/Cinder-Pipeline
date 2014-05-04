@@ -51,7 +51,7 @@ inline const NodeRef& operator>>(const NodeRef &node, const NodeRef& childNode) 
 class SourceNode : public Node {
 public:
     static SourceNodeRef create();
-    static SourceNodeRef create(gl::TextureRef& texture);
+    static SourceNodeRef create(const gl::TextureRef& texture);
     virtual ~SourceNode() {}
 
     void setTexture(gl::TextureRef& texture) { mTexture = texture; }
@@ -61,7 +61,7 @@ public:
 
 protected:
     SourceNode() {}
-    SourceNode(gl::TextureRef& texture) : mTexture(texture) {}
+    SourceNode(const gl::TextureRef& texture) : mTexture(texture) {}
 
     virtual void connectInput(const NodeRef& node) final {}
     virtual void disconnectInput(const NodeRef& node) final {}
