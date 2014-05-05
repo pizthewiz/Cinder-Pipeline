@@ -127,7 +127,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
 
         for (NodeRef node : branch) {
             std::string name = node->getName();
-            name.resize(3);
+            name.resize(3, ' ');
             cinder::app::console() << "[" << name << "] > ";
         }
         cinder::app::console() << std::endl;
@@ -142,6 +142,9 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
 
     // render branches
     unsigned int outAttachment = 0;
+
+    Area viewport = gl::getViewport();
+    gl::setViewport(mFBO.getBounds());
     mFBO.bindFramebuffer(); {
         gl::pushMatrices(); {
             gl::setMatricesWindow(mFBO.getSize(), false);
@@ -188,6 +191,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
             }
         } gl::popMatrices();
     } mFBO.unbindFramebuffer();
+    gl::setViewport(viewport);
 
     return mFBO.getTexture(outAttachment);
 }
