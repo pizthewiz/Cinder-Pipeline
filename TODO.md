@@ -1,5 +1,6 @@
 
 ### PIPELINE
+- investigate caching branches across executes
 - take advantage of GL_NV_texture_barrier when supported to make a texture read/write
 
 ### NODE
