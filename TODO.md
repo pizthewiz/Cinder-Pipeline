@@ -1,10 +1,12 @@
 
 ### PIPELINE
+- validate node inputs and outputs on execute
 - investigate caching branches across executes
 - take advantage of GL_NV_texture_barrier when supported to make a texture read/write
 
 ### NODE
-- publish inputs and outputs for connection
+- validation of node inputs and outputs, prevent cycles
+- publish named inputs
 - don't recreate shaders, a single static one might be fine
 - if not using ci::gl::GlslProg, consider using GL_ARB_separate_shader_objects when supported
 
