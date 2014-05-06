@@ -82,6 +82,8 @@ void Pipeline::setup(const Vec2i size) {
 }
 
 gl::Texture& Pipeline::evaluate(const NodeRef& node) {
+    // TODO - validation of node inputs
+
     // build branch list
     std::deque<std::deque<NodeRef>> branches;
     std::deque<NodeRef> branch;
@@ -91,8 +93,8 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
     while (n) {
         branch.push_front(n);
 
-        // TODO - replace with RTTI to determine if n is a SourceNodeRef
-        if (n->getInputNodes().empty()) {
+        SourceNodeRef s = std::dynamic_pointer_cast<SourceNode>(n);
+        if (s) {
             branches.push_front(branch);
             branch = std::deque<NodeRef>();
 
@@ -103,24 +105,25 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
                 stack.pop_front();
             }
         } else {
-            if (n->getInputNodes().size() > 1) {
+            if (n->getInputNodes().size() == 1) {
+                n = n->getInputNodes()[0];
+            } else if (n->getInputNodes().size() == 2) {
                 branches.push_front(branch);
                 branch = std::deque<NodeRef>();
 
                 stack.push_front(n->getInputNodes()[0]);
                 n = n->getInputNodes()[1];
-            } else {
-                n = n->getInputNodes()[0];
             }
         }
     }
 
 #if defined(DEBUG)
     // ASCII visualization
-    cinder::app::console() << "" << std::endl;
+    cinder::app::console() << std::string(13, '#') << std::endl;
     unsigned int count = 0;
     for (std::deque<NodeRef> branch : branches) {
-        if (branch.at(0)->getInputNodes().size() != 0) {
+        SourceNodeRef s = std::dynamic_pointer_cast<SourceNode>(branch.at(0));
+        if (!s) {
             unsigned int spaceCount = count * 5 + count * 3;
             cinder::app::console() << std::string(spaceCount, ' ');
         }
@@ -134,10 +137,11 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
 
         if (count == 0 || branch.size() > count) {
             count = branch.size();
-        } else if (branch.at(0)->getInputNodes().size() != 0) {
+        } else if (!s) {
             count += branch.size();
         }
     }
+    cinder::app::console() << std::endl;
 #endif
 
     // render branches
@@ -159,30 +163,32 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
                 int inAltAttachment = -1;
 
                 for (NodeRef n : branch) {
-                    switch (n->getInputNodes().size()) {
-                        case 0:
-                            n->render(mFBO, outAttachment);
-                            inAttachment = outAttachment;
-                            break;
-                        case 1:
-                            attachmentIndex = (attachmentIndex + 1) % attachments.size();
-                            outAttachment = attachments.at(attachmentIndex);
-                            n->render(mFBO, inAttachment, mFBO, outAttachment);
-                            inAttachment = outAttachment;
-                            break;
-                        case 2:
-                            inAttachment = storedAttachments.at(0);
-                            inAltAttachment = storedAttachments.at(1);
+                    SourceNodeRef s = std::dynamic_pointer_cast<SourceNode>(n);
+                    if (s) {
+                        s->render(mFBO, outAttachment);
+                        inAttachment = outAttachment;
+                    } else {
+                        EffectorNodeRef e = std::dynamic_pointer_cast<EffectorNode>(n);
+                        if (!e) {
+                            cinder::app::console() << "ERROR - unknown node type '" << n->getName() << "'" << std::endl;
+                        } else {
+                            if (e->getInputNodes().size() == 1) {
+                                attachmentIndex = (attachmentIndex + 1) % attachments.size();
+                                outAttachment = attachments.at(attachmentIndex);
+                                e->render(mFBO, inAttachment, mFBO, outAttachment);
+                                inAttachment = outAttachment;
+                            } else if (e->getInputNodes().size() == 2) {
+                                inAttachment = storedAttachments.at(0);
+                                inAltAttachment = storedAttachments.at(1);
 
-                            storedAttachments.clear();
-                            attachments = {0, 1, 2};
-                            attachmentIndex = outAttachment;
+                                storedAttachments.clear();
+                                attachments = {0, 1, 2};
+                                attachmentIndex = outAttachment;
 
-                            n->render(mFBO, inAttachment, mFBO, inAltAttachment, mFBO, outAttachment);
-                            inAttachment = outAttachment;
-                            break;
-                        default:
-                            break;
+                                e->render(mFBO, inAttachment, mFBO, inAltAttachment, mFBO, outAttachment);
+                                inAttachment = outAttachment;
+                            }
+                        }
                     }
                 }
 

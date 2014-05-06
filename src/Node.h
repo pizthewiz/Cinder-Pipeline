@@ -24,7 +24,7 @@ class Node : public std::enable_shared_from_this<Node>, public boost::noncopyabl
 public:
     virtual ~Node() {}
 
-    virtual std::string getName() const { return "UNKNOWN"; }
+    virtual std::string getName() const = 0;
 
     virtual void connectOutputNode(const NodeRef& node);
     virtual void disconnectOutputNode(const NodeRef& node);
@@ -32,10 +32,6 @@ public:
     // TODO std::vector<NodeInputDescriptor> getInputDescriptors() const { return mInputDescriptors; }
     std::vector<NodeRef> getInputNodes() const { return mInputNodes; }
     std::vector<NodeRef> getOutputNodes() const { return mOutputNodes; }
-
-    virtual void render(gl::Fbo& outFBO, const int outAttachment) {}
-    virtual void render(gl::Fbo& inFBO, const int inAttachment, gl::Fbo& outFBO, const int outAttachment) {}
-    virtual void render(gl::Fbo& inFBO, const int inAttachment, gl::Fbo& inAltFBO, const int inAltAttachment, gl::Fbo& outFBO, const int outAttachment) {}
 
 protected:
     Node() {}
@@ -81,7 +77,7 @@ class EffectorNode : public Node {
 public:
     virtual ~EffectorNode() {}
 
-    virtual std::string getName() const { return "EFFECTOR"; }
+    virtual std::string getName() const { return "Effector"; }
 
     virtual void render(gl::Fbo& inFBO, const int inAttachment, gl::Fbo& outFBO, const int outAttachment) {}
     virtual void render(gl::Fbo& inFBO, const int inAttachment, gl::Fbo& inAltFBO, const int inAltAttachment, gl::Fbo& outFBO, const int outAttachment) {}
