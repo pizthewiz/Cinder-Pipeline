@@ -13,6 +13,7 @@ using namespace ci;
 
 namespace Cinder { namespace Pipeline {
 
+// NB - max inputs + 1 should suffice as long as the render stack is ordered properly
 #define NUM_ATTACHMENTS 3
 
 PipelineRef Pipeline::create() {
@@ -138,20 +139,20 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
         gl::pushMatrices(); {
             gl::setMatricesWindow(mFBO.getSize(), false);
 
-            // int instead of GLenum for Cinder FBO bindTexture/getTexture
+            // int instead of GLenum for Cinder's FBO bindTexture/getTexture
             std::vector<int> availableAttachments;
             for (unsigned int idx = 0; idx < NUM_ATTACHMENTS; idx++) {
                 availableAttachments.push_back(idx);
             }
-            std::deque<std::tuple<int, NodeRef>> storedAttachments;
+            std::deque<std::tuple<int, NodeRef>> attachmentsStack;
 
             for (BranchRef b : renderStack) {
                 size_t attachmentIndex = 0;
                 outAttachment = availableAttachments.at(attachmentIndex);
                 int inAttachment = -1;
+
                 for (size_t nodeIdx = 0; nodeIdx < b->getNodes().size(); nodeIdx++) {
                     NodeRef n = b->getNodes().at(nodeIdx);
-
                     SourceNodeRef s = std::dynamic_pointer_cast<SourceNode>(n);
                     if (s) {
                         s->render(mFBO, outAttachment);
@@ -160,18 +161,14 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
                         EffectorNodeRef e = std::dynamic_pointer_cast<EffectorNode>(n);
                         if (e) {
                             if (e->getInputNodes().size() == 1) {
-                                if (availableAttachments.size() < 2) {
-                                    // TODO - bad news
-                                }
-
                                 attachmentIndex = (attachmentIndex + 1) % availableAttachments.size();
                                 outAttachment = availableAttachments.at(attachmentIndex);
                                 e->render(mFBO, inAttachment, mFBO, outAttachment);
                                 inAttachment = outAttachment;
                             } else if (e->getInputNodes().size() == 2) {
-                                std::tuple<int, NodeRef> t = storedAttachments.front(); storedAttachments.pop_front();
+                                std::tuple<int, NodeRef> t = attachmentsStack.front(); attachmentsStack.pop_front();
                                 inAttachment = std::get<0>(t);
-                                std::tuple<int, NodeRef> t2 = storedAttachments.front(); storedAttachments.pop_front();
+                                std::tuple<int, NodeRef> t2 = attachmentsStack.front(); attachmentsStack.pop_front();
                                 int inAltAttachment = std::get<0>(t2);
 
                                 // ensure input ordering is correct
@@ -190,7 +187,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
 
                     // stash output attachment and accompanying node when branch concludes
                     if (nodeIdx == b->getNodes().size() - 1) {
-                        storedAttachments.push_front(std::make_tuple(outAttachment, n));
+                        attachmentsStack.push_front(std::make_tuple(outAttachment, n));
                         availableAttachments.erase(std::find(availableAttachments.begin(), availableAttachments.end(), outAttachment));
                     }
                 }
@@ -248,7 +245,7 @@ std::deque<BranchRef> Pipeline::renderStackForRootBranch(const BranchRef& branch
                 b = branchStack.front(); branchStack.pop_front();
             }
         } else {
-            // take cheaper route, push more expensive
+            // push cheaper path on the stack first
             if (std::get<1>(b->getInputBranches().at(0)) >= std::get<1>(b->getInputBranches().at(1))) {
                 branchStack.push_front(std::get<0>(b->getInputBranches().at(0)));
                 b = std::get<0>(b->getInputBranches().at(1));
