@@ -15,6 +15,44 @@
 namespace Cinder { namespace Pipeline {
 
 typedef std::shared_ptr<class Pipeline> PipelineRef;
+typedef std::shared_ptr<class Branch> BranchRef;
+
+class Branch : public std::enable_shared_from_this<Branch> {
+public:
+    static BranchRef create() { return BranchRef(new Branch())->shared_from_this(); }
+    ~Branch() {}
+
+    void setNodes(std::deque<NodeRef>& nodes) { mNodes = nodes; }
+    const std::deque<NodeRef>& getNodes() const { return mNodes; }
+
+    void connectInputBranch(const BranchRef& branch) {
+        unsigned int cost = branch->getMaxInputCost() + branch->getNodes().size();
+        mInputBranches.push_back(std::make_tuple(branch, cost));
+
+        BranchRef thisBranch = shared_from_this();
+        if (cost > thisBranch->getMaxInputCost()) {
+            thisBranch->setMaxInputCost(cost);
+        }
+
+        branch->connectOutputBranch(thisBranch);
+    }
+
+    std::vector<std::tuple<BranchRef, unsigned int>>& getInputBranches() { return mInputBranches; }
+    std::vector<BranchRef>& getOutputBranches() { return mOutputBranches; }
+
+    void setMaxInputCost(unsigned int cost) { mMaxInputCost = cost; }
+    unsigned int getMaxInputCost() const { return mMaxInputCost; }
+
+private:
+    Branch() : mMaxInputCost(0) {}
+
+    void connectOutputBranch(const BranchRef& branch) { mOutputBranches.push_back(branch); }
+
+    std::deque<NodeRef> mNodes;
+    std::vector<std::tuple<BranchRef, unsigned int>> mInputBranches;
+    std::vector<BranchRef> mOutputBranches;
+    unsigned int mMaxInputCost;
+};
 
 class Pipeline : public std::enable_shared_from_this<Pipeline> {
 public:
@@ -27,6 +65,9 @@ public:
 
 private:
     Pipeline();
+
+    BranchRef branchForNode(const NodeRef& node);
+    std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
 
     gl::Fbo mFBO;
 };
