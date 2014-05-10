@@ -15,9 +15,12 @@ const std::string FragmentShaderBlur = R"(
     #version 120
     uniform sampler2D image;
     uniform vec2 sampleOffset;
+    uniform float amount;
 
     void main() {
         vec2 position = gl_TexCoord[0].st;
+        vec4 color = texture2D(image, position);
+
         vec4 sum = vec4(0.0);
         sum += texture2D(image, position + -10.0 * sampleOffset) * 0.009167927656011385;
         sum += texture2D(image, position +  -9.0 * sampleOffset) * 0.014053461291849008;
@@ -40,7 +43,8 @@ const std::string FragmentShaderBlur = R"(
         sum += texture2D(image, position +  +8.0 * sampleOffset) * 0.020595286319257878;
         sum += texture2D(image, position +  +9.0 * sampleOffset) * 0.014053461291849008;
         sum += texture2D(image, position + +10.0 * sampleOffset) * 0.009167927656011385;
-        gl_FragColor = sum;
+
+        gl_FragColor = mix(color, sum, clamp(amount, 0.0, 1.0));
     }
 )";
 
@@ -61,6 +65,7 @@ void BlurNode::render(gl::Fbo& inputFBO, const int inputFBOAttachment, gl::Fbo& 
         mShader->bind(); {
             mShader->uniform("image", 0);
             mShader->uniform("sampleOffset", mSampleOffset);
+            mShader->uniform("amount", 1.0f);
             gl::drawSolidRect(outputFBO.getBounds());
         } mShader->unbind();
     } inputFBO.unbindTexture();
