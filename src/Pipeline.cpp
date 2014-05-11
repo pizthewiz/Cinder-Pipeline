@@ -245,7 +245,7 @@ std::deque<BranchRef> Pipeline::renderStackForRootBranch(const BranchRef& branch
                 b = branchStack.front(); branchStack.pop_front();
             }
         } else {
-            // push cheaper path on the stack first
+            // follow cheaper path to push it on the render stack first
             if (std::get<1>(b->getInputBranches().at(0)) >= std::get<1>(b->getInputBranches().at(1))) {
                 branchStack.push_front(std::get<0>(b->getInputBranches().at(0)));
                 b = std::get<0>(b->getInputBranches().at(1));

@@ -26,15 +26,18 @@ public:
     const std::deque<NodeRef>& getNodes() const { return mNodes; }
 
     void connectInputBranch(const BranchRef& branch) {
-        unsigned int cost = branch->getMaxInputCost() + branch->getNodes().size();
-        mInputBranches.push_back(std::make_tuple(branch, cost));
+        mInputBranches.push_back(std::make_tuple(branch, branch->getMaxInputCost()));
 
-        BranchRef thisBranch = shared_from_this();
-        if (cost > thisBranch->getMaxInputCost()) {
-            thisBranch->setMaxInputCost(cost);
+        unsigned int cost = 0;
+        for (std::tuple<BranchRef, unsigned int> t : mInputBranches) {
+            unsigned int c = std::get<1>(t);
+            if (c > cost) {
+                cost = c;
+            }
         }
+        setMaxInputCost(cost + mInputBranches.size());
 
-        branch->connectOutputBranch(thisBranch);
+        branch->connectOutputBranch(shared_from_this());
     }
 
     std::vector<std::tuple<BranchRef, unsigned int>>& getInputBranches() { return mInputBranches; }
