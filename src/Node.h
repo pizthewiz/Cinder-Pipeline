@@ -29,18 +29,18 @@ public:
     virtual void connectOutputNode(const NodeRef& node);
     virtual void disconnectOutputNode(const NodeRef& node);
 
-    // TODO std::vector<NodeInputDescriptor> getInputDescriptors() const { return mInputDescriptors; }
+    // TODO std::vector<NodePortDescriptor> getInputPortDescriptors() const { return mInputPortDescriptors; }
     std::vector<NodeRef> getInputNodes() const { return mInputNodes; }
     std::vector<NodeRef> getOutputNodes() const { return mOutputNodes; }
 
 protected:
     Node() {}
 
-    // TODO - replace with virtual void connectInputNode(const NodeRef& node, NodeInputIdentifier);
+    // TODO - replace with virtual void connectInputNode(const NodeRef& node, const NodePortIdentifier& identifier);
     virtual void connectInputNode(const NodeRef& node);
     virtual void disconnectInputNode(const NodeRef& node);
 
-    // TODO - replace with std::map<NodeInputIdentifier, NodeRef> mInputsMap
+    // TODO - replace with std::map<NodePortIdentifier, NodeRef> mInputsMap; and std::map<NodePortIdentifier, NodeRef> mOutputsMap;
     std::vector<NodeRef> mInputNodes;
     std::vector<NodeRef> mOutputNodes;
 };
