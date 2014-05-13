@@ -28,14 +28,15 @@ SourceNodeRef SourceNode::create() {
 }
 
 SourceNode::SourceNode() {
-    std::vector<std::string> inputKeys = {"texture"}; // PortTypeTexture
+    std::vector<std::string> inputKeys = {"texture"};
     setInputPortKeys(inputKeys);
-    std::vector<std::string> outputKeys = {"image"}; // PortTypeFBOImage
+    std::vector<std::string> outputKeys = {"image"};
     setOutputPortKeys(outputKeys);
 }
 
 void SourceNode::render(const FBOImageRef& outputFBOImage) {
     gl::TextureRef texture = getValueForInputPortKey<gl::TextureRef>("texture");
+
     gl::draw(texture);
 }
 
@@ -49,14 +50,10 @@ const std::string EffectorNode::sVertexShaderPassThrough = R"(
     }
 )";
 
-EffectorNode::EffectorNode(DataSourceRef vertexShader, DataSourceRef fragmentShader) {
+void EffectorNode::setupShader(DataSourceRef vertexShader, DataSourceRef fragmentShader) {
     std::string vert = vertexShader ? loadString(vertexShader) : sVertexShaderPassThrough;
     std::string frag = loadString(fragmentShader);
-    EffectorNode(vert, frag);
-}
-
-EffectorNode::EffectorNode(const std::string& vertexShader, const std::string& fragmentShader) {
-    setupShader(vertexShader, fragmentShader);
+    setupShader(vert, frag);
 }
 
 void EffectorNode::setupShader(const std::string& vertexShader, const std::string& fragmentShader) {

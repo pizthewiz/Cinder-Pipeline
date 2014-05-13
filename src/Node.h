@@ -33,6 +33,8 @@ public:
     inline gl::Fbo getFBO() const { return mFBO; }
     inline int getAttachment() const { return mAttachment; }
 
+    gl::Texture& getTexture() { return mFBO.getTexture(mAttachment); }
+
     void bindTexture(const int textureUnit) { mFBO.bindTexture(textureUnit, mAttachment); }
     void unbindTexture() { mFBO.unbindTexture(); }
 
@@ -117,14 +119,12 @@ public:
 
     virtual std::string getName() const { return "Effector"; }
 
-    virtual void render(gl::Fbo& inFBO, const int inAttachment, gl::Fbo& outFBO, const int outAttachment) {}
-    virtual void render(gl::Fbo& inFBO, const int inAttachment, gl::Fbo& inAltFBO, const int inAltAttachment, gl::Fbo& outFBO, const int outAttachment) {}
+    virtual void render(const FBOImageRef& outputFBOImage) {}
 
 protected:
     EffectorNode() {}
-    EffectorNode(DataSourceRef vertexShader, DataSourceRef fragmentShader);
-    EffectorNode(const std::string& vertexShader, const std::string& fragmentShader);
 
+    void setupShader(DataSourceRef vertexShader, DataSourceRef fragmentShader);
     void setupShader(const std::string& vertexShader, const std::string& fragmentShader);
 
     static const std::string sVertexShaderPassThrough;
