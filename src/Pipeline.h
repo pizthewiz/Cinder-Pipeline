@@ -64,7 +64,7 @@ public:
 
     void setup(const Vec2i size);
 
-//    gl::Texture& evaluate(const NodeRef& node);
+    gl::Texture& evaluate(const NodeRef& node);
 
 private:
     Pipeline();

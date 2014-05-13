@@ -11,14 +11,15 @@
 
 namespace Cinder { namespace Pipeline {
 
-void Node::connectOutputNode(const std::string outputPortKey, const NodeRef& node, const std::string key) {
-    mOutputConnectionMap[outputPortKey].push_back(std::make_tuple(node, key));
-    node->connectInputNode(key, shared_from_this(), outputPortKey);
-}
-
-void Node::connectInputNode(const std::string inputPortKey, const NodeRef& node, const std::string key) {
-    mInputConnectionMap[inputPortKey] = std::make_tuple(node, key);
-}
+//void Node::connectOutputNode(const std::string outputPortKey, const NodeRef& node, const std::string key) {
+//    // check key exists, types match, no cycle
+//    mOutputConnectionMap[outputPortKey].push_back(std::make_tuple(node, key));
+//    node->connectInputNode(key, shared_from_this(), outputPortKey);
+//}
+//
+//void Node::connectInputNode(const std::string inputPortKey, const NodeRef& node, const std::string key) {
+//    mInputConnectionMap[inputPortKey] = std::make_tuple(node, key);
+//}
 
 #pragma mark - SOURCE
 
@@ -26,13 +27,16 @@ SourceNodeRef SourceNode::create() {
     return SourceNodeRef(new SourceNode());
 }
 
-SourceNodeRef SourceNode::create(const gl::TextureRef& texture) {
-    return SourceNodeRef(new SourceNode(texture));
+SourceNode::SourceNode() {
+    std::vector<std::string> inputKeys = {"texture"}; // PortTypeTexture
+    setInputPortKeys(inputKeys);
+    std::vector<std::string> outputKeys = {"image"}; // PortTypeFBOImage
+    setOutputPortKeys(outputKeys);
 }
 
-void SourceNode::render(gl::Fbo& outFBO, const int outAttachment) {
-    glDrawBuffer(GL_COLOR_ATTACHMENT0 + outAttachment);
-    gl::draw(mTexture);
+void SourceNode::render(const FBOImageRef& outputFBOImage) {
+    gl::TextureRef texture = getValueForInputPortKey<gl::TextureRef>("texture");
+    gl::draw(texture);
 }
 
 #pragma mark - EFFECTOR
