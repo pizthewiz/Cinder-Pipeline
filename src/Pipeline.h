@@ -64,13 +64,13 @@ public:
 
     void setup(const Vec2i size);
 
-    gl::Texture& evaluate(const NodeRef& node);
+//    gl::Texture& evaluate(const NodeRef& node);
 
 private:
     Pipeline();
 
-    BranchRef branchForNode(const NodeRef& node);
-    std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
+//    BranchRef branchForNode(const NodeRef& node);
+//    std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
 
     gl::Fbo mFBO;
 };

@@ -11,6 +11,7 @@
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Fbo.h"
+#include <boost/any.hpp>
 
 namespace Cinder { namespace Pipeline {
 
@@ -20,35 +21,50 @@ typedef std::shared_ptr<class Node> NodeRef;
 typedef std::shared_ptr<class SourceNode> SourceNodeRef;
 typedef std::shared_ptr<class EffectorNode> EffectorNodeRef;
 
+// types: FBOImage, texture, float, Vec2f, bool, int
+// typedef std::tuple<NodeRef, std::string> NodeConnection
+
 class Node : public std::enable_shared_from_this<Node>, public boost::noncopyable {
 public:
     virtual ~Node() {}
 
     virtual std::string getName() const = 0;
 
-    virtual void connectOutputNode(const NodeRef& node);
-    virtual void disconnectOutputNode(const NodeRef& node);
+    void setInputPortKeys(const std::vector<std::string> keys) { mInputPortKeys = keys; }
+    std::vector<std::string> getInputPortKeys() const { return mInputPortKeys; }
+    void setOutputPortKeys(const std::vector<std::string> keys) { mOutputPortKeys = keys; }
+    std::vector<std::string> getOutputPortKeys() const { return mOutputPortKeys; }
 
-    // TODO std::vector<NodePortDescriptor> getInputPortDescriptors() const { return mInputPortDescriptors; }
-    std::vector<NodeRef> getInputNodes() const { return mInputNodes; }
-    std::vector<NodeRef> getOutputNodes() const { return mOutputNodes; }
+    template <typename T>
+    void setValueForInputPortKey(T value, const std::string& key) {
+        if (std::find(mInputPortKeys.begin(), mInputPortKeys.end(), key) == mInputPortKeys.end()) {
+            return;
+        }
+        mPortValueMap[key] = value;
+    }
+    template <typename T>
+	inline T getValueForOutputPortKey(const std::string& key) {
+        return boost::any_cast<T>(mPortValueMap[key]);
+    }
+
+    virtual void connectOutputNode(const std::string outputPortKey, const NodeRef& node, const std::string key);
+
+    std::tuple<NodeRef, std::string>& getNodeConnectionForInputPortKey(const std::string key) { return mInputConnectionMap[key]; }
+    std::vector<std::tuple<NodeRef, std::string>>& getNodeConnectionForOutputPortKey(const std::string key) { return mOutputConnectionMap[key]; }
 
 protected:
     Node() {}
 
-    // TODO - replace with virtual void connectInputNode(const NodeRef& node, const NodePortIdentifier& identifier);
-    virtual void connectInputNode(const NodeRef& node);
-    virtual void disconnectInputNode(const NodeRef& node);
+    virtual void connectInputNode(const std::string inputPortKey, const NodeRef& node, const std::string key);
 
-    // TODO - replace with std::map<NodePortIdentifier, NodeRef> mInputsMap; and std::map<NodePortIdentifier, NodeRef> mOutputsMap;
-    std::vector<NodeRef> mInputNodes;
-    std::vector<NodeRef> mOutputNodes;
+    std::vector<std::string> mInputPortKeys;
+    std::vector<std::string> mOutputPortKeys;
+
+    std::map<std::string, boost::any> mPortValueMap;
+
+    std::map<std::string, std::tuple<NodeRef, std::string>> mInputConnectionMap;
+    std::map<std::string, std::vector<std::tuple<NodeRef, std::string>>> mOutputConnectionMap;
 };
-
-inline const NodeRef& operator>>(const NodeRef &node, const NodeRef& childNode) {
-    node->connectOutputNode(childNode);
-    return childNode;
-}
 
 class SourceNode : public Node {
 public:
@@ -67,8 +83,7 @@ protected:
     SourceNode() {}
     SourceNode(const gl::TextureRef& texture) : mTexture(texture) {}
 
-    virtual void connectInput(const NodeRef& node) final {}
-    virtual void disconnectInput(const NodeRef& node) final {}
+    virtual void connectInputNode(const std::string inputPortKey, const NodeRef& node, const std::string key) final {}
 
     gl::TextureRef mTexture;
 };

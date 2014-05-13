@@ -105,158 +105,158 @@ void Pipeline::setup(const Vec2i size) {
     } mFBO.unbindFramebuffer();
 }
 
-gl::Texture& Pipeline::evaluate(const NodeRef& node) {
-    BranchRef root = branchForNode(node);
-    std::deque<BranchRef> renderStack = renderStackForRootBranch(root);
-
-#if defined(DEBUG)
-    // ASCII visualization
-    cinder::app::console() << std::string(13, '#') << std::endl;
-    for (BranchRef b : renderStack) {
-        unsigned int spaceCount = b->getMaxInputCost() * 5 + MAX((int)b->getMaxInputCost() - 1, 0) * 3;
-        cinder::app::console() << std::string(spaceCount, ' ');
-
-        for (NodeRef n : b->getNodes()) {
-            if (!std::dynamic_pointer_cast<SourceNode>(n)) {
-                cinder::app::console() << " → ";
-            }
-
-            std::string name = n->getName();
-            name.resize(3, ' ');
-            cinder::app::console() << "[" << name << "]";
-        }
-        cinder::app::console() << std::endl;
-    }
-    cinder::app::console() << std::endl;
-#endif
-
-    // render branches
-    unsigned int outAttachment = 0;
-
-    Area viewport = gl::getViewport();
-    gl::setViewport(mFBO.getBounds());
-    mFBO.bindFramebuffer(); {
-        gl::pushMatrices(); {
-            gl::setMatricesWindow(mFBO.getSize(), false);
-
-            // int instead of GLenum for Cinder's FBO bindTexture/getTexture
-            std::vector<int> availableAttachments;
-            for (unsigned int idx = 0; idx < NUM_ATTACHMENTS; idx++) {
-                availableAttachments.push_back(idx);
-            }
-            std::deque<std::tuple<int, NodeRef>> attachmentsStack;
-
-            for (BranchRef b : renderStack) {
-                size_t attachmentIndex = 0;
-                outAttachment = availableAttachments.at(attachmentIndex);
-                int inAttachment = -1;
-
-                for (size_t nodeIdx = 0; nodeIdx < b->getNodes().size(); nodeIdx++) {
-                    NodeRef n = b->getNodes().at(nodeIdx);
-                    SourceNodeRef s = std::dynamic_pointer_cast<SourceNode>(n);
-                    if (s) {
-                        s->render(mFBO, outAttachment);
-                        inAttachment = outAttachment;
-                    } else {
-                        EffectorNodeRef e = std::dynamic_pointer_cast<EffectorNode>(n);
-                        if (e) {
-                            if (e->getInputNodes().size() == 1) {
-                                attachmentIndex = (attachmentIndex + 1) % availableAttachments.size();
-                                outAttachment = availableAttachments.at(attachmentIndex);
-                                e->render(mFBO, inAttachment, mFBO, outAttachment);
-                                inAttachment = outAttachment;
-                            } else if (e->getInputNodes().size() == 2) {
-                                std::tuple<int, NodeRef> t = attachmentsStack.front(); attachmentsStack.pop_front();
-                                inAttachment = std::get<0>(t);
-                                std::tuple<int, NodeRef> t2 = attachmentsStack.front(); attachmentsStack.pop_front();
-                                int inAltAttachment = std::get<0>(t2);
-
-                                // ensure input ordering is correct
-                                if (std::get<1>(t) != n->getInputNodes().at(0)) {
-                                    std::swap(inAttachment, inAltAttachment);
-                                }
-
-                                availableAttachments.push_back(inAttachment);
-                                availableAttachments.push_back(inAltAttachment);
-
-                                e->render(mFBO, inAttachment, mFBO, inAltAttachment, mFBO, outAttachment);
-                                inAttachment = outAttachment;
-                            }
-                        }
-                    }
-
-                    // stash output attachment and accompanying node when branch concludes
-                    if (nodeIdx == b->getNodes().size() - 1) {
-                        attachmentsStack.push_front(std::make_tuple(outAttachment, n));
-                        availableAttachments.erase(std::find(availableAttachments.begin(), availableAttachments.end(), outAttachment));
-                    }
-                }
-
-            }
-        } gl::popMatrices();
-    } mFBO.unbindFramebuffer();
-    gl::setViewport(viewport);
-
-    return mFBO.getTexture(outAttachment);
-}
-
-#pragma mark - PRIVATE
-
-BranchRef Pipeline::branchForNode(const NodeRef& node) {
-    std::deque<NodeRef> nodes;
-    BranchRef branch = Branch::create();
-
-    NodeRef n = node;
-    while (n) {
-        nodes.push_front(n);
-
-        if (std::dynamic_pointer_cast<SourceNode>(n)) {
-            n = nullptr;
-        } else {
-            if (n->getInputNodes().size() == 1) {
-                n = n->getInputNodes().at(0);
-            } else if (n->getInputNodes().size() == 2) {
-                BranchRef b = branchForNode(n->getInputNodes().at(0));
-                branch->connectInputBranch(b);
-
-                b = branchForNode(n->getInputNodes().at(1));
-                branch->connectInputBranch(b);
-
-                n = nullptr;
-            }
-        }
-    }
-    branch->setNodes(nodes);
-
-    return branch;
-}
-
-std::deque<BranchRef> Pipeline::renderStackForRootBranch(const BranchRef& branch) {
-    std::deque<BranchRef> renderStack;
-    std::deque<BranchRef> branchStack;
-
-    BranchRef b = branch;
-    while (b) {
-        renderStack.push_front(b);
-        if (b->getInputBranches().empty()) {
-            if (branchStack.empty()) {
-                b = nullptr;
-            } else {
-                b = branchStack.front(); branchStack.pop_front();
-            }
-        } else {
-            // follow cheaper path to push it on the render stack first
-            if (std::get<1>(b->getInputBranches().at(0)) >= std::get<1>(b->getInputBranches().at(1))) {
-                branchStack.push_front(std::get<0>(b->getInputBranches().at(0)));
-                b = std::get<0>(b->getInputBranches().at(1));
-            } else {
-                branchStack.push_front(std::get<0>(b->getInputBranches().at(1)));
-                b = std::get<0>(b->getInputBranches().at(0));
-            }
-        }
-    }
-
-    return renderStack;
-}
+//gl::Texture& Pipeline::evaluate(const NodeRef& node) {
+//    BranchRef root = branchForNode(node);
+//    std::deque<BranchRef> renderStack = renderStackForRootBranch(root);
+//
+//#if defined(DEBUG)
+//    // ASCII visualization
+//    cinder::app::console() << std::string(13, '#') << std::endl;
+//    for (BranchRef b : renderStack) {
+//        unsigned int spaceCount = b->getMaxInputCost() * 5 + MAX((int)b->getMaxInputCost() - 1, 0) * 3;
+//        cinder::app::console() << std::string(spaceCount, ' ');
+//
+//        for (NodeRef n : b->getNodes()) {
+//            if (!std::dynamic_pointer_cast<SourceNode>(n)) {
+//                cinder::app::console() << " → ";
+//            }
+//
+//            std::string name = n->getName();
+//            name.resize(3, ' ');
+//            cinder::app::console() << "[" << name << "]";
+//        }
+//        cinder::app::console() << std::endl;
+//    }
+//    cinder::app::console() << std::endl;
+//#endif
+//
+//    // render branches
+//    unsigned int outAttachment = 0;
+//
+//    Area viewport = gl::getViewport();
+//    gl::setViewport(mFBO.getBounds());
+//    mFBO.bindFramebuffer(); {
+//        gl::pushMatrices(); {
+//            gl::setMatricesWindow(mFBO.getSize(), false);
+//
+//            // int instead of GLenum for Cinder's FBO bindTexture/getTexture
+//            std::vector<int> availableAttachments;
+//            for (unsigned int idx = 0; idx < NUM_ATTACHMENTS; idx++) {
+//                availableAttachments.push_back(idx);
+//            }
+//            std::deque<std::tuple<int, NodeRef>> attachmentsStack;
+//
+//            for (BranchRef b : renderStack) {
+//                size_t attachmentIndex = 0;
+//                outAttachment = availableAttachments.at(attachmentIndex);
+//                int inAttachment = -1;
+//
+//                for (size_t nodeIdx = 0; nodeIdx < b->getNodes().size(); nodeIdx++) {
+//                    NodeRef n = b->getNodes().at(nodeIdx);
+//                    SourceNodeRef s = std::dynamic_pointer_cast<SourceNode>(n);
+//                    if (s) {
+//                        s->render(mFBO, outAttachment);
+//                        inAttachment = outAttachment;
+//                    } else {
+//                        EffectorNodeRef e = std::dynamic_pointer_cast<EffectorNode>(n);
+//                        if (e) {
+//                            if (e->getInputNodes().size() == 1) {
+//                                attachmentIndex = (attachmentIndex + 1) % availableAttachments.size();
+//                                outAttachment = availableAttachments.at(attachmentIndex);
+//                                e->render(mFBO, inAttachment, mFBO, outAttachment);
+//                                inAttachment = outAttachment;
+//                            } else if (e->getInputNodes().size() == 2) {
+//                                std::tuple<int, NodeRef> t = attachmentsStack.front(); attachmentsStack.pop_front();
+//                                inAttachment = std::get<0>(t);
+//                                std::tuple<int, NodeRef> t2 = attachmentsStack.front(); attachmentsStack.pop_front();
+//                                int inAltAttachment = std::get<0>(t2);
+//
+//                                // ensure input ordering is correct
+//                                if (std::get<1>(t) != n->getInputNodes().at(0)) {
+//                                    std::swap(inAttachment, inAltAttachment);
+//                                }
+//
+//                                availableAttachments.push_back(inAttachment);
+//                                availableAttachments.push_back(inAltAttachment);
+//
+//                                e->render(mFBO, inAttachment, mFBO, inAltAttachment, mFBO, outAttachment);
+//                                inAttachment = outAttachment;
+//                            }
+//                        }
+//                    }
+//
+//                    // stash output attachment and accompanying node when branch concludes
+//                    if (nodeIdx == b->getNodes().size() - 1) {
+//                        attachmentsStack.push_front(std::make_tuple(outAttachment, n));
+//                        availableAttachments.erase(std::find(availableAttachments.begin(), availableAttachments.end(), outAttachment));
+//                    }
+//                }
+//
+//            }
+//        } gl::popMatrices();
+//    } mFBO.unbindFramebuffer();
+//    gl::setViewport(viewport);
+//
+//    return mFBO.getTexture(outAttachment);
+//}
+//
+//#pragma mark - PRIVATE
+//
+//BranchRef Pipeline::branchForNode(const NodeRef& node) {
+//    std::deque<NodeRef> nodes;
+//    BranchRef branch = Branch::create();
+//
+//    NodeRef n = node;
+//    while (n) {
+//        nodes.push_front(n);
+//
+//        if (std::dynamic_pointer_cast<SourceNode>(n)) {
+//            n = nullptr;
+//        } else {
+//            if (n->getInputNodes().size() == 1) {
+//                n = n->getInputNodes().at(0);
+//            } else if (n->getInputNodes().size() == 2) {
+//                BranchRef b = branchForNode(n->getInputNodes().at(0));
+//                branch->connectInputBranch(b);
+//
+//                b = branchForNode(n->getInputNodes().at(1));
+//                branch->connectInputBranch(b);
+//
+//                n = nullptr;
+//            }
+//        }
+//    }
+//    branch->setNodes(nodes);
+//
+//    return branch;
+//}
+//
+//std::deque<BranchRef> Pipeline::renderStackForRootBranch(const BranchRef& branch) {
+//    std::deque<BranchRef> renderStack;
+//    std::deque<BranchRef> branchStack;
+//
+//    BranchRef b = branch;
+//    while (b) {
+//        renderStack.push_front(b);
+//        if (b->getInputBranches().empty()) {
+//            if (branchStack.empty()) {
+//                b = nullptr;
+//            } else {
+//                b = branchStack.front(); branchStack.pop_front();
+//            }
+//        } else {
+//            // follow cheaper path to push it on the render stack first
+//            if (std::get<1>(b->getInputBranches().at(0)) >= std::get<1>(b->getInputBranches().at(1))) {
+//                branchStack.push_front(std::get<0>(b->getInputBranches().at(0)));
+//                b = std::get<0>(b->getInputBranches().at(1));
+//            } else {
+//                branchStack.push_front(std::get<0>(b->getInputBranches().at(1)));
+//                b = std::get<0>(b->getInputBranches().at(0));
+//            }
+//        }
+//    }
+//
+//    return renderStack;
+//}
 
 }}
