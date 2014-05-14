@@ -166,7 +166,8 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
                         EffectorNodeRef e = std::dynamic_pointer_cast<EffectorNode>(n);
                         if (e) {
                             std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
-                            if (imageInputPortKeys.size() == 1) {
+                            size_t numberOfImageInputPorts = imageInputPortKeys.size();
+                            if (numberOfImageInputPorts == 1) {
                                 FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
                                 e->setValueForInputPortKey(inputFBOImage, imageInputPortKeys.at(0));
 
@@ -178,17 +179,20 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
                                 e->render(outputFBOImage);
 
                                 inAttachment = outAttachment;
-                            } else if (imageInputPortKeys.size() == 2) {
-                                std::tuple<int, NodeRef> t = attachmentsStack.front(); attachmentsStack.pop_front();
-                                std::tuple<int, NodeRef> t2 = attachmentsStack.front(); attachmentsStack.pop_front();
+                            } else if (numberOfImageInputPorts == 2) {
+                                std::vector<std::tuple<int, NodeRef>> inputAttachments(numberOfImageInputPorts);
+                                inputAttachments.assign(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
+                                attachmentsStack.erase(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
 
                                 for (std::string key : imageInputPortKeys) {
                                     std::tuple<NodeRef, std::string> connection = e->getNodeConnectionForInputPortKey(key);
-                                    if (std::get<0>(connection) == std::get<1>(t)) {
-                                        inAttachment = std::get<0>(t);
-                                    } else {
-                                        inAttachment = std::get<0>(t2);
-                                    }
+                                    NodeRef inputNode = std::get<0>(connection);
+                                    auto it = std::find_if(inputAttachments.begin(), inputAttachments.end(), [inputNode](std::tuple<int, NodeRef> t) {
+                                        return std::get<1>(t) == inputNode;
+                                    });
+                                    inAttachment = std::get<0>(*it);
+                                    inputAttachments.erase(it);
+
                                     FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
                                     e->setValueForInputPortKey(inputFBOImage, key);
 
@@ -199,7 +203,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
 
                                 FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
                                 e->render(outputFBOImage);
-
+                                
                                 inAttachment = outAttachment;
                             }
                         }
@@ -233,10 +237,11 @@ BranchRef Pipeline::branchForNode(const NodeRef& node) {
             n = nullptr;
         } else {
             std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
-            if (imageInputPortKeys.size() == 1) {
+            size_t numberOfImageInputPorts = imageInputPortKeys.size();
+            if (numberOfImageInputPorts == 1) {
                 std::tuple<NodeRef, std::string> connection = n->getNodeConnectionForInputPortKey(imageInputPortKeys.at(0));
                 n = std::get<0>(connection);
-            } else if (imageInputPortKeys.size() == 2) {
+            } else if (numberOfImageInputPorts == 2) {
                 for (std::string key : imageInputPortKeys) {
                     std::tuple<NodeRef, std::string> connection = n->getNodeConnectionForInputPortKey(key);
                     BranchRef b = branchForNode(std::get<0>(connection));
