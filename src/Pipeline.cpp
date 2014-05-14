@@ -106,29 +106,29 @@ void Pipeline::setup(const Vec2i size) {
 }
 
 gl::Texture& Pipeline::evaluate(const NodeRef& node) {
-//    BranchRef root = branchForNode(node);
-//    std::deque<BranchRef> renderStack = renderStackForRootBranch(root);
-//
-//#if defined(DEBUG)
-//    // ASCII visualization
-//    cinder::app::console() << std::string(13, '#') << std::endl;
-//    for (BranchRef b : renderStack) {
-//        unsigned int spaceCount = b->getMaxInputCost() * 5 + MAX((int)b->getMaxInputCost() - 1, 0) * 3;
-//        cinder::app::console() << std::string(spaceCount, ' ');
-//
-//        for (NodeRef n : b->getNodes()) {
-//            if (!std::dynamic_pointer_cast<SourceNode>(n)) {
-//                cinder::app::console() << " → ";
-//            }
-//
-//            std::string name = n->getName();
-//            name.resize(3, ' ');
-//            cinder::app::console() << "[" << name << "]";
-//        }
-//        cinder::app::console() << std::endl;
-//    }
-//    cinder::app::console() << std::endl;
-//#endif
+    BranchRef root = branchForNode(node);
+    std::deque<BranchRef> renderStack = renderStackForRootBranch(root);
+
+#if defined(DEBUG)
+    // ASCII visualization
+    cinder::app::console() << std::string(13, '#') << std::endl;
+    for (BranchRef b : renderStack) {
+        unsigned int spaceCount = b->getMaxInputCost() * 5 + MAX((int)b->getMaxInputCost() - 1, 0) * 3;
+        cinder::app::console() << std::string(spaceCount, ' ');
+
+        for (NodeRef n : b->getNodes()) {
+            if (!std::dynamic_pointer_cast<SourceNode>(n)) {
+                cinder::app::console() << " → ";
+            }
+
+            std::string name = n->getName();
+            name.resize(3, ' ');
+            cinder::app::console() << "[" << name << "]";
+        }
+        cinder::app::console() << std::endl;
+    }
+    cinder::app::console() << std::endl;
+#endif
 
     // render branches
     unsigned int outAttachment = 0;
@@ -146,68 +146,60 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
             }
             std::deque<std::tuple<int, NodeRef>> attachmentsStack;
 
-            NodeRef n = node;
-            while (n) {
-                size_t attachmentIndex = 0;
-                outAttachment = availableAttachments.at(attachmentIndex);
-                FBOImageRef fboImage = FBOImage::create(mFBO, outAttachment);
-                int inAttachment = -1;
-
-                glDrawBuffer(GL_COLOR_ATTACHMENT0 + outAttachment);
-
-                SourceNodeRef s = std::dynamic_pointer_cast<SourceNode>(n);
-                if (s) {
-                    s->render(fboImage);
-                    inAttachment = outAttachment;
-                } else {
-//                    EffectorNodeRef e = std::dynamic_pointer_cast<EffectorNode>(n);
-//                    if (e) {
-//                        if (e->getInputNodes().size() == 1) {
-//                        } else if (e->getInputNodes().size() == 2) {
-//                        }
-//                    }
-                }
-
-//                n->setValueForOutputPortKey(fboImage, "image");
-
-                n = nullptr;
-            }
-
-/*
             for (BranchRef b : renderStack) {
                 size_t attachmentIndex = 0;
                 outAttachment = availableAttachments.at(attachmentIndex);
                 int inAttachment = -1;
 
                 for (size_t nodeIdx = 0; nodeIdx < b->getNodes().size(); nodeIdx++) {
+                    // TODO - hoist draw buffer assignment
                     NodeRef n = b->getNodes().at(nodeIdx);
                     SourceNodeRef s = std::dynamic_pointer_cast<SourceNode>(n);
                     if (s) {
-                        s->render(mFBO, outAttachment);
+                        glDrawBuffer(GL_COLOR_ATTACHMENT0 + outAttachment);
+
+                        FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
+                        s->render(outputFBOImage);
+
                         inAttachment = outAttachment;
                     } else {
                         EffectorNodeRef e = std::dynamic_pointer_cast<EffectorNode>(n);
                         if (e) {
-                            if (e->getInputNodes().size() == 1) {
+                            std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
+                            if (imageInputPortKeys.size() == 1) {
+                                FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
+                                e->setValueForInputPortKey(inputFBOImage, imageInputPortKeys.at(0));
+
                                 attachmentIndex = (attachmentIndex + 1) % availableAttachments.size();
                                 outAttachment = availableAttachments.at(attachmentIndex);
-                                e->render(mFBO, inAttachment, mFBO, outAttachment);
-                                inAttachment = outAttachment;
-                            } else if (e->getInputNodes().size() == 2) {
-                                std::tuple<int, NodeRef> t = attachmentsStack.front(); attachmentsStack.pop_front();
-                                inAttachment = std::get<0>(t);
-                                std::tuple<int, NodeRef> t2 = attachmentsStack.front(); attachmentsStack.pop_front();
-                                int inAltAttachment = std::get<0>(t2);
+                                glDrawBuffer(GL_COLOR_ATTACHMENT0 + outAttachment);
 
-                                // ensure input ordering is correct
-                                if (std::get<1>(t) != n->getInputNodes().at(0)) {
-                                    std::swap(inAttachment, inAltAttachment);
+                                FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
+                                e->render(outputFBOImage);
+
+                                inAttachment = outAttachment;
+                            } else if (imageInputPortKeys.size() == 2) {
+                                std::tuple<int, NodeRef> t = attachmentsStack.front(); attachmentsStack.pop_front();
+                                std::tuple<int, NodeRef> t2 = attachmentsStack.front(); attachmentsStack.pop_front();
+
+                                for (std::string key : imageInputPortKeys) {
+                                    std::tuple<NodeRef, std::string> connection = e->getNodeConnectionForInputPortKey(key);
+                                    if (std::get<0>(connection) == std::get<1>(t)) {
+                                        inAttachment = std::get<0>(t);
+                                    } else {
+                                        inAttachment = std::get<0>(t2);
+                                    }
+                                    FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
+                                    e->setValueForInputPortKey(inputFBOImage, key);
+
+                                    availableAttachments.push_back(inAttachment);
                                 }
 
-                                availableAttachments.push_back(inAttachment);
-                                availableAttachments.push_back(inAltAttachment);
+                                glDrawBuffer(GL_COLOR_ATTACHMENT0 + outAttachment);
 
-                                e->render(mFBO, inAttachment, mFBO, inAltAttachment, mFBO, outAttachment);
+                                FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
+                                e->render(outputFBOImage);
+
                                 inAttachment = outAttachment;
                             }
                         }
@@ -220,7 +212,6 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
                     }
                 }
             }
-*/
         } gl::popMatrices();
     } mFBO.unbindFramebuffer();
     gl::setViewport(viewport);
@@ -228,63 +219,65 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
     return mFBO.getTexture(outAttachment);
 }
 
-//#pragma mark - PRIVATE
-//
-//BranchRef Pipeline::branchForNode(const NodeRef& node) {
-//    std::deque<NodeRef> nodes;
-//    BranchRef branch = Branch::create();
-//
-//    NodeRef n = node;
-//    while (n) {
-//        nodes.push_front(n);
-//
-//        if (std::dynamic_pointer_cast<SourceNode>(n)) {
-//            n = nullptr;
-//        } else {
-//            if (n->getInputNodes().size() == 1) {
-//                n = n->getInputNodes().at(0);
-//            } else if (n->getInputNodes().size() == 2) {
-//                BranchRef b = branchForNode(n->getInputNodes().at(0));
-//                branch->connectInputBranch(b);
-//
-//                b = branchForNode(n->getInputNodes().at(1));
-//                branch->connectInputBranch(b);
-//
-//                n = nullptr;
-//            }
-//        }
-//    }
-//    branch->setNodes(nodes);
-//
-//    return branch;
-//}
-//
-//std::deque<BranchRef> Pipeline::renderStackForRootBranch(const BranchRef& branch) {
-//    std::deque<BranchRef> renderStack;
-//    std::deque<BranchRef> branchStack;
-//
-//    BranchRef b = branch;
-//    while (b) {
-//        renderStack.push_front(b);
-//        if (b->getInputBranches().empty()) {
-//            if (branchStack.empty()) {
-//                b = nullptr;
-//            } else {
-//                b = branchStack.front(); branchStack.pop_front();
-//            }
-//        } else {
-//            // follow cheaper path to push it on the render stack first
-//            if (std::get<1>(b->getInputBranches().at(0)) >= std::get<1>(b->getInputBranches().at(1))) {
-//                branchStack.push_front(std::get<0>(b->getInputBranches().at(0)));
-//                b = std::get<0>(b->getInputBranches().at(1));
-//            } else {
-//                branchStack.push_front(std::get<0>(b->getInputBranches().at(1)));
-//                b = std::get<0>(b->getInputBranches().at(0));
-//            }
-//        }
-//    }
-//
-//    return renderStack;
-//}
+#pragma mark - PRIVATE
+
+BranchRef Pipeline::branchForNode(const NodeRef& node) {
+    std::deque<NodeRef> nodes;
+    BranchRef branch = Branch::create();
+
+    NodeRef n = node;
+    while (n) {
+        nodes.push_front(n);
+
+        if (std::dynamic_pointer_cast<SourceNode>(n)) {
+            n = nullptr;
+        } else {
+            std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
+            if (imageInputPortKeys.size() == 1) {
+                std::tuple<NodeRef, std::string> connection = n->getNodeConnectionForInputPortKey(imageInputPortKeys.at(0));
+                n = std::get<0>(connection);
+            } else if (imageInputPortKeys.size() == 2) {
+                for (std::string key : imageInputPortKeys) {
+                    std::tuple<NodeRef, std::string> connection = n->getNodeConnectionForInputPortKey(key);
+                    BranchRef b = branchForNode(std::get<0>(connection));
+                    branch->connectInputBranch(b);
+                }
+
+                n = nullptr;
+            }
+        }
+    }
+    branch->setNodes(nodes);
+
+    return branch;
+}
+
+std::deque<BranchRef> Pipeline::renderStackForRootBranch(const BranchRef& branch) {
+    std::deque<BranchRef> renderStack;
+    std::deque<BranchRef> branchStack;
+
+    BranchRef b = branch;
+    while (b) {
+        renderStack.push_front(b);
+        if (b->getInputBranches().empty()) {
+            if (branchStack.empty()) {
+                b = nullptr;
+            } else {
+                b = branchStack.front(); branchStack.pop_front();
+            }
+        } else {
+            // follow cheaper path to push it on the render stack first
+            if (std::get<1>(b->getInputBranches().at(0)) >= std::get<1>(b->getInputBranches().at(1))) {
+                branchStack.push_front(std::get<0>(b->getInputBranches().at(0)));
+                b = std::get<0>(b->getInputBranches().at(1));
+            } else {
+                branchStack.push_front(std::get<0>(b->getInputBranches().at(1)));
+                b = std::get<0>(b->getInputBranches().at(0));
+            }
+        }
+    }
+
+    return renderStack;
+}
 
 }}

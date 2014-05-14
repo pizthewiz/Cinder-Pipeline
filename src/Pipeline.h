@@ -69,8 +69,8 @@ public:
 private:
     Pipeline();
 
-//    BranchRef branchForNode(const NodeRef& node);
-//    std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
+    BranchRef branchForNode(const NodeRef& node);
+    std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
 
     gl::Fbo mFBO;
 };

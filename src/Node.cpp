@@ -11,15 +11,15 @@
 
 namespace Cinder { namespace Pipeline {
 
-//void Node::connectOutputNode(const std::string outputPortKey, const NodeRef& node, const std::string key) {
-//    // check key exists, types match, no cycle
-//    mOutputConnectionMap[outputPortKey].push_back(std::make_tuple(node, key));
-//    node->connectInputNode(key, shared_from_this(), outputPortKey);
-//}
-//
-//void Node::connectInputNode(const std::string inputPortKey, const NodeRef& node, const std::string key) {
-//    mInputConnectionMap[inputPortKey] = std::make_tuple(node, key);
-//}
+void Node::connectOutputNode(const NodeRef& node, const std::string key, const std::string outputPortKey) {
+    // check key exists, types match, no cycle
+    mOutputConnectionMap[outputPortKey].push_back(std::make_tuple(node, key));
+    node->connectInputNode(shared_from_this(), outputPortKey, key);
+}
+
+void Node::connectInputNode(const NodeRef& node, const std::string key, const std::string inputPortKey) {
+    mInputConnectionMap[inputPortKey] = std::make_tuple(node, key);
+}
 
 #pragma mark - SOURCE
 
