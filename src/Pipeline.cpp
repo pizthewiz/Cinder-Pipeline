@@ -264,7 +264,7 @@ std::deque<BranchRef> Pipeline::renderStackForRootBranch(const BranchRef& branch
     while (b) {
         renderStack.push_front(b);
 
-        if (b->getInputBranches().empty()) {
+        if (b->getInputConnections().empty()) {
             if (branchStack.empty()) {
                 b = nullptr;
             } else {
@@ -273,18 +273,18 @@ std::deque<BranchRef> Pipeline::renderStackForRootBranch(const BranchRef& branch
             }
         } else {
             // sort by cost DESC
-            std::vector<std::tuple<BranchRef, unsigned int>> sortedInputBranches = b->getInputBranches();
-            std::sort(sortedInputBranches.begin(), sortedInputBranches.end(), [](std::tuple<BranchRef, unsigned int> t, std::tuple<BranchRef, unsigned int> t2) {
-                return std::get<1>(t) > std::get<1>(t2);
+            std::vector<BranchConnectionRef> sortedInputConnections = b->getInputConnections();
+            std::sort(sortedInputConnections.begin(), sortedInputConnections.end(), [](const BranchConnectionRef& c1, const BranchConnectionRef& c2) {
+                return c1->getCost() > c2->getCost();
             });
 
             // follow cheapest path
-            b = std::get<0>(sortedInputBranches.back());
-            sortedInputBranches.pop_back();
+            b = sortedInputConnections.back()->getSourceBranch();
+            sortedInputConnections.pop_back();
 
             // push the others
-            for (std::tuple<BranchRef, unsigned int> t : sortedInputBranches) {
-                branchStack.push_front(std::get<0>(t));
+            for (const BranchConnectionRef& c : sortedInputConnections) {
+                branchStack.push_front(c->getSourceBranch());
             }
         }
     }

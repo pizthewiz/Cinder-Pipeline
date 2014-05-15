@@ -16,6 +16,35 @@ namespace Cinder { namespace Pipeline {
 
 typedef std::shared_ptr<class Pipeline> PipelineRef;
 typedef std::shared_ptr<class Branch> BranchRef;
+typedef std::shared_ptr<class Connection> BranchConnectionRef;
+
+class Connection : public std::enable_shared_from_this<Connection> {
+public:
+    static BranchConnectionRef create(const BranchRef& source, const BranchRef& destination = nullptr, unsigned int cost = 0) {
+        return BranchConnectionRef(new Connection(source, destination, cost))->shared_from_this();
+    }
+
+    BranchRef& getSourceBranch() {
+        return mSourceBranch;
+    }
+    BranchRef& getDestinationBranch() {
+        return mDestinationBranch;
+    }
+    Connection& setCost(unsigned int cost) {
+        mCost = cost;
+        return *this;
+    }
+    unsigned int getCost() const {
+        return mCost;
+    }
+
+private:
+    Connection(const BranchRef& source, const BranchRef& destination, unsigned int cost) : mSourceBranch(source), mDestinationBranch(destination), mCost(cost) {}
+
+    BranchRef mSourceBranch;
+    BranchRef mDestinationBranch;
+    unsigned int mCost;
+};
 
 class Branch : public std::enable_shared_from_this<Branch> {
 public:
@@ -26,22 +55,19 @@ public:
     const std::deque<NodeRef>& getNodes() const { return mNodes; }
 
     void connectInputBranch(const BranchRef& branch) {
-        mInputBranches.push_back(std::make_tuple(branch, branch->getMaxInputCost()));
+        mInputConnections.push_back(Connection::create(branch, nullptr, branch->getMaxInputCost()));
 
-        unsigned int cost = 0;
-        for (std::tuple<BranchRef, unsigned int> t : mInputBranches) {
-            unsigned int c = std::get<1>(t);
-            if (c > cost) {
-                cost = c;
-            }
-        }
-        setMaxInputCost(cost + mInputBranches.size());
+        auto result = std::max_element(mInputConnections.begin(), mInputConnections.end(), [](const BranchConnectionRef& c1, const BranchConnectionRef& c2) {
+            return c1->getCost() < c2->getCost();
+        });
+        unsigned int cost = mInputConnections.at(std::distance(mInputConnections.begin(), result))->getCost();
+        setMaxInputCost(cost + (unsigned int)mInputConnections.size());
 
-        branch->connectOutputBranch(shared_from_this());
+//        branch->connectOutputBranch(shared_from_this());
     }
 
-    std::vector<std::tuple<BranchRef, unsigned int>>& getInputBranches() { return mInputBranches; }
-    std::vector<BranchRef>& getOutputBranches() { return mOutputBranches; }
+    std::vector<BranchConnectionRef>& getInputConnections() { return mInputConnections; }
+//    std::vector<BranchRef>& getOutputConnections() { return mOutputConnections; }
 
     void setMaxInputCost(unsigned int cost) { mMaxInputCost = cost; }
     unsigned int getMaxInputCost() const { return mMaxInputCost; }
@@ -49,11 +75,11 @@ public:
 private:
     Branch() : mMaxInputCost(0) {}
 
-    void connectOutputBranch(const BranchRef& branch) { mOutputBranches.push_back(branch); }
+//    void connectOutputBranch(const BranchRef& branch) { mOutputBranches.push_back(Connection::create(branch)); }
 
     std::deque<NodeRef> mNodes;
-    std::vector<std::tuple<BranchRef, unsigned int>> mInputBranches;
-    std::vector<BranchRef> mOutputBranches;
+    std::vector<BranchConnectionRef> mInputConnections;
+//    std::vector<BranchConnectionRef> mOutputConnections;
     unsigned int mMaxInputCost;
 };
 
