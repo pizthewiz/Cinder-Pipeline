@@ -83,8 +83,8 @@ public:
 
     virtual void connectOutputNode(const NodeRef& node, const std::string key = "image", const std::string outputPortKey = "image");
 
-    std::tuple<NodeRef, std::string>& getNodeConnectionForInputPortKey(const std::string key) { return mInputConnectionMap[key]; }
-    std::vector<std::tuple<NodeRef, std::string>>& getNodeConnectionForOutputPortKey(const std::string key) { return mOutputConnectionMap[key]; }
+    std::tuple<NodeRef, std::string>& getConnectionForInputPortKey(const std::string key) { return mInputConnectionMap[key]; }
+    std::vector<std::tuple<NodeRef, std::string>>& getConnectionForOutputPortKey(const std::string key) { return mOutputConnectionMap[key]; }
 
 protected:
 //    friend class Pipeline;

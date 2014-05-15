@@ -185,7 +185,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
                                 attachmentsStack.erase(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
 
                                 for (std::string key : imageInputPortKeys) {
-                                    std::tuple<NodeRef, std::string> connection = e->getNodeConnectionForInputPortKey(key);
+                                    std::tuple<NodeRef, std::string> connection = e->getConnectionForInputPortKey(key);
                                     NodeRef inputNode = std::get<0>(connection);
                                     auto it = std::find_if(inputAttachments.begin(), inputAttachments.end(), [inputNode](std::tuple<int, NodeRef> t) {
                                         return std::get<1>(t) == inputNode;
@@ -237,13 +237,12 @@ BranchRef Pipeline::branchForNode(const NodeRef& node) {
             n = nullptr;
         } else {
             std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
-            size_t numberOfImageInputPorts = imageInputPortKeys.size();
-            if (numberOfImageInputPorts == 1) {
-                std::tuple<NodeRef, std::string> connection = n->getNodeConnectionForInputPortKey(imageInputPortKeys.at(0));
+            if (imageInputPortKeys.size() == 1) {
+                std::tuple<NodeRef, std::string> connection = n->getConnectionForInputPortKey(imageInputPortKeys.at(0));
                 n = std::get<0>(connection);
-            } else if (numberOfImageInputPorts == 2) {
+            } else if (imageInputPortKeys.size() == 2) {
                 for (std::string key : imageInputPortKeys) {
-                    std::tuple<NodeRef, std::string> connection = n->getNodeConnectionForInputPortKey(key);
+                    std::tuple<NodeRef, std::string> connection = n->getConnectionForInputPortKey(key);
                     BranchRef b = branchForNode(std::get<0>(connection));
                     branch->connectInputBranch(b);
                 }
@@ -264,20 +263,28 @@ std::deque<BranchRef> Pipeline::renderStackForRootBranch(const BranchRef& branch
     BranchRef b = branch;
     while (b) {
         renderStack.push_front(b);
+
         if (b->getInputBranches().empty()) {
             if (branchStack.empty()) {
                 b = nullptr;
             } else {
-                b = branchStack.front(); branchStack.pop_front();
+                b = branchStack.front();
+                branchStack.pop_front();
             }
         } else {
-            // follow cheaper path to push it on the render stack first
-            if (std::get<1>(b->getInputBranches().at(0)) >= std::get<1>(b->getInputBranches().at(1))) {
-                branchStack.push_front(std::get<0>(b->getInputBranches().at(0)));
-                b = std::get<0>(b->getInputBranches().at(1));
-            } else {
-                branchStack.push_front(std::get<0>(b->getInputBranches().at(1)));
-                b = std::get<0>(b->getInputBranches().at(0));
+            // sort by cost DESC
+            std::vector<std::tuple<BranchRef, unsigned int>> sortedInputBranches = b->getInputBranches();
+            std::sort(sortedInputBranches.begin(), sortedInputBranches.end(), [](std::tuple<BranchRef, unsigned int> t, std::tuple<BranchRef, unsigned int> t2) {
+                return std::get<1>(t) > std::get<1>(t2);
+            });
+
+            // follow cheapest path
+            b = std::get<0>(sortedInputBranches.back());
+            sortedInputBranches.pop_back();
+
+            // push the others
+            for (std::tuple<BranchRef, unsigned int> t : sortedInputBranches) {
+                branchStack.push_front(std::get<0>(t));
             }
         }
     }
