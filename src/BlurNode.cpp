@@ -53,20 +53,27 @@ BlurNodeRef BlurNode::create() {
 }
 
 BlurNode::BlurNode() {
+    std::vector<std::string> inputKeys = {"image", "sampleOffset"};
+    setInputPortKeys(inputKeys);
+//    std::vector<std::string> outputKeys = {"image"};
+//    setOutputPortKeys(outputKeys);
+
     setupShader(sVertexShaderPassThrough, FragmentShaderBlur);
 }
 
 BlurNode::~BlurNode() {
 }
 
-void BlurNode::render(gl::Fbo& inputFBO, const int inputFBOAttachment, gl::Fbo& outputFBO, const int outputFBOAttachment) {
-    glDrawBuffer(GL_COLOR_ATTACHMENT0 + outputFBOAttachment);
-    inputFBO.bindTexture(0, inputFBOAttachment); {
+void BlurNode::render(const FBOImageRef& outputFBOImage) {
+    FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>("image");
+    Vec2f inputSampleOffset = getValueForInputPortKey<Vec2f>("sampleOffset");
+
+    inputFBOImage->bindTexture(0); {
         mShader->bind(); {
             mShader->uniform("image", 0);
-            mShader->uniform("sampleOffset", mSampleOffset);
+            mShader->uniform("sampleOffset", inputSampleOffset);
             mShader->uniform("amount", 1.0f);
-            gl::drawSolidRect(outputFBO.getBounds());
+            gl::drawSolidRect(outputFBOImage->getFBO().getBounds());
         } mShader->unbind();
-    } inputFBO.unbindTexture();
+    } inputFBOImage->unbindTexture();
 }

@@ -21,13 +21,8 @@ public:
 
     virtual std::string getName() const { return "Blur"; }
 
-    void render(gl::Fbo& inputFBO, const int inputFBOAttachment, gl::Fbo& outputFBO, const int outputFBOAttachment);
-
-    void setSampleOffset(Vec2f sampleOffset) { mSampleOffset = sampleOffset; }
-    Vec2f sampleOffset() const { return mSampleOffset; }
+    void render(const FBOImageRef& outputFBOImage);
 
 private:
     BlurNode();
-
-    Vec2f mSampleOffset;
 };

@@ -11,22 +11,14 @@
 
 namespace Cinder { namespace Pipeline {
 
-void Node::connectOutputNode(const NodeRef& node) {
-    mOutputNodes.push_back(node);
-    node->connectInputNode(shared_from_this());
+void Node::connectOutputNode(const NodeRef& node, const std::string key, const std::string outputPortKey) {
+    // check key exists, types match, no cycle
+//    mOutputConnectionMap[outputPortKey].push_back(std::make_tuple(node, key));
+    node->connectInputNode(shared_from_this(), outputPortKey, key);
 }
 
-void Node::disconnectOutputNode(const NodeRef& node) {
-    mOutputNodes.erase(std::find(mOutputNodes.begin(), mOutputNodes.end(), node));
-    node->disconnectInputNode(shared_from_this());
-}
-
-void Node::connectInputNode(const NodeRef& node) {
-    mInputNodes.push_back(node);
-}
-
-void Node::disconnectInputNode(const NodeRef& node) {
-    mInputNodes.erase(std::find(mInputNodes.begin(), mInputNodes.end(), node));
+void Node::connectInputNode(const NodeRef& node, const std::string key, const std::string inputPortKey) {
+    mInputConnectionMap[inputPortKey] = std::make_tuple(node, key);
 }
 
 #pragma mark - SOURCE
@@ -35,13 +27,17 @@ SourceNodeRef SourceNode::create() {
     return SourceNodeRef(new SourceNode());
 }
 
-SourceNodeRef SourceNode::create(const gl::TextureRef& texture) {
-    return SourceNodeRef(new SourceNode(texture));
+SourceNode::SourceNode() {
+    std::vector<std::string> inputKeys = {"texture"};
+    setInputPortKeys(inputKeys);
+//    std::vector<std::string> outputKeys = {"image"};
+//    setOutputPortKeys(outputKeys);
 }
 
-void SourceNode::render(gl::Fbo& outFBO, const int outAttachment) {
-    glDrawBuffer(GL_COLOR_ATTACHMENT0 + outAttachment);
-    gl::draw(mTexture);
+void SourceNode::render(const FBOImageRef& outputFBOImage) {
+    gl::TextureRef texture = getValueForInputPortKey<gl::TextureRef>("texture");
+
+    gl::draw(texture);
 }
 
 #pragma mark - EFFECTOR
@@ -54,14 +50,10 @@ const std::string EffectorNode::sVertexShaderPassThrough = R"(
     }
 )";
 
-EffectorNode::EffectorNode(DataSourceRef vertexShader, DataSourceRef fragmentShader) {
+void EffectorNode::setupShader(DataSourceRef vertexShader, DataSourceRef fragmentShader) {
     std::string vert = vertexShader ? loadString(vertexShader) : sVertexShaderPassThrough;
     std::string frag = loadString(fragmentShader);
-    EffectorNode(vert, frag);
-}
-
-EffectorNode::EffectorNode(const std::string& vertexShader, const std::string& fragmentShader) {
-    setupShader(vertexShader, fragmentShader);
+    setupShader(vert, frag);
 }
 
 void EffectorNode::setupShader(const std::string& vertexShader, const std::string& fragmentShader) {

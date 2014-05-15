@@ -11,6 +11,7 @@
 #include "cinder/gl/Texture.h"
 #include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Fbo.h"
+#include <boost/any.hpp>
 
 namespace Cinder { namespace Pipeline {
 
@@ -19,58 +20,114 @@ using namespace ci;
 typedef std::shared_ptr<class Node> NodeRef;
 typedef std::shared_ptr<class SourceNode> SourceNodeRef;
 typedef std::shared_ptr<class EffectorNode> EffectorNodeRef;
+typedef std::shared_ptr<class FBOImage> FBOImageRef;
+
+// port: {key: K, type: T, minimum: N, maximum: X, default: D}
+// types: PortTypeFBOImage, PortTypeTexture, PortTypeFloat, PortTypeInt, PortTypeBool, PortTypeVec2f, PortTypeVec3f, PortTypeVec4f, PortTypeColor
+
+class FBOImage : public std::enable_shared_from_this<FBOImage> {
+public:
+    static FBOImageRef create(const gl::Fbo& fbo, const int attachment) { return FBOImageRef(new FBOImage(fbo, attachment))->shared_from_this(); }
+    ~FBOImage() {}
+
+    inline gl::Fbo getFBO() const { return mFBO; }
+    inline int getAttachment() const { return mAttachment; }
+
+    gl::Texture& getTexture() { return mFBO.getTexture(mAttachment); }
+
+    void bindTexture(const int textureUnit) { mFBO.bindTexture(textureUnit, mAttachment); }
+    void unbindTexture() { mFBO.unbindTexture(); }
+
+private:
+    FBOImage(const gl::Fbo& fbo, const int attachment) : mFBO(fbo), mAttachment(attachment) {}
+
+    gl::Fbo mFBO;
+    int mAttachment;
+};
 
 class Node : public std::enable_shared_from_this<Node>, public boost::noncopyable {
 public:
+    Node() {}
     virtual ~Node() {}
 
     virtual std::string getName() const = 0;
 
-    virtual void connectOutputNode(const NodeRef& node);
-    virtual void disconnectOutputNode(const NodeRef& node);
+    void setInputPortKeys(std::vector<std::string> keys) { mInputPortKeys = keys; }
+    std::vector<std::string> getInputPortKeys() const { return mInputPortKeys; }
+//    void setOutputPortKeys(std::vector<std::string> keys) { mOutputPortKeys = keys; }
+//    std::vector<std::string> getOutputPortKeys() const { return mOutputPortKeys; }
 
-    // TODO std::vector<NodePortDescriptor> getInputPortDescriptors() const { return mInputPortDescriptors; }
-    std::vector<NodeRef> getInputNodes() const { return mInputNodes; }
-    std::vector<NodeRef> getOutputNodes() const { return mOutputNodes; }
+    std::vector<std::string> getImageInputPortKeys() {
+        std::vector<std::string> filteredKeys;
+        for (std::string key : mInputPortKeys) {
+            // TODO - filter on type, port.type == PortTypeFBOImage
+            if (key.rfind("image", 0) != 0) {
+                continue;
+            }
+            filteredKeys.push_back(key);
+        }
+        return filteredKeys;
+    }
+
+    template <typename T>
+    void setValueForInputPortKey(T value, const std::string& key) {
+        if (std::find(mInputPortKeys.begin(), mInputPortKeys.end(), key) == mInputPortKeys.end()) {
+            return;
+        }
+        mInputPortValueMap[key] = value;
+    }
+    template <typename T>
+	inline T getValueForInputPortKey(const std::string& key) {
+        return boost::any_cast<T>(mInputPortValueMap[key]);
+    }
+
+    virtual void connectOutputNode(const NodeRef& node, const std::string key = "image", const std::string outputPortKey = "image");
+
+    std::tuple<NodeRef, std::string>& getConnectionForInputPortKey(const std::string key) { return mInputConnectionMap[key]; }
+//    std::vector<std::tuple<NodeRef, std::string>>& getConnectionForOutputPortKey(const std::string key) { return mOutputConnectionMap[key]; }
 
 protected:
-    Node() {}
+//    friend class Pipeline;
+//    template <typename T>
+//    void setValueForOutputPortKey(T value, const std::string& key) {
+//        if (std::find(mOutputPortKeys.begin(), mOutputPortKeys.end(), key) == mOutputPortKeys.end()) {
+//            return;
+//        }
+//        mOutputPortValueMap[key] = value;
+//    }
+//    template <typename T>
+//	inline T getValueForOutputPortKey(const std::string& key) {
+//        return boost::any_cast<T>(mOutputPortValueMap[key]);
+//    }
 
-    // TODO - replace with virtual void connectInputNode(const NodeRef& node, const NodePortIdentifier& identifier);
-    virtual void connectInputNode(const NodeRef& node);
-    virtual void disconnectInputNode(const NodeRef& node);
+    virtual void connectInputNode(const NodeRef& node, const std::string key = "image", const std::string inputPortKey = "image");
 
-    // TODO - replace with std::map<NodePortIdentifier, NodeRef> mInputsMap; and std::map<NodePortIdentifier, NodeRef> mOutputsMap;
-    std::vector<NodeRef> mInputNodes;
-    std::vector<NodeRef> mOutputNodes;
+    std::vector<std::string> mInputPortKeys;
+//    std::vector<std::string> mOutputPortKeys;
+
+    std::map<std::string, boost::any> mInputPortValueMap;
+//    std::map<std::string, boost::any> mOutputPortValueMap;
+
+    std::map<std::string, std::tuple<NodeRef, std::string>> mInputConnectionMap;
+//    std::map<std::string, std::vector<std::tuple<NodeRef, std::string>>> mOutputConnectionMap;
 };
 
-inline const NodeRef& operator>>(const NodeRef &node, const NodeRef& childNode) {
-    node->connectOutputNode(childNode);
-    return childNode;
+inline const NodeRef& operator>>(const NodeRef& input, const NodeRef& output) {
+    input->connectOutputNode(output);
+    return output;
 }
 
 class SourceNode : public Node {
 public:
     static SourceNodeRef create();
-    static SourceNodeRef create(const gl::TextureRef& texture);
     virtual ~SourceNode() {}
 
     virtual std::string getName() const { return "Source"; }
 
-    virtual void render(gl::Fbo& outFBO, const int outAttachment);
-
-    void setTexture(gl::TextureRef& texture) { mTexture = texture; }
-    gl::TextureRef& getTexture() { return mTexture; }
+    virtual void render(const FBOImageRef& outputFBOImage);
 
 protected:
-    SourceNode() {}
-    SourceNode(const gl::TextureRef& texture) : mTexture(texture) {}
-
-    virtual void connectInput(const NodeRef& node) final {}
-    virtual void disconnectInput(const NodeRef& node) final {}
-
-    gl::TextureRef mTexture;
+    SourceNode();
 };
 
 class EffectorNode : public Node {
@@ -79,14 +136,12 @@ public:
 
     virtual std::string getName() const { return "Effector"; }
 
-    virtual void render(gl::Fbo& inFBO, const int inAttachment, gl::Fbo& outFBO, const int outAttachment) {}
-    virtual void render(gl::Fbo& inFBO, const int inAttachment, gl::Fbo& inAltFBO, const int inAltAttachment, gl::Fbo& outFBO, const int outAttachment) {}
+    virtual void render(const FBOImageRef& outputFBOImage) {}
 
 protected:
     EffectorNode() {}
-    EffectorNode(DataSourceRef vertexShader, DataSourceRef fragmentShader);
-    EffectorNode(const std::string& vertexShader, const std::string& fragmentShader);
 
+    void setupShader(DataSourceRef vertexShader, DataSourceRef fragmentShader);
     void setupShader(const std::string& vertexShader, const std::string& fragmentShader);
 
     static const std::string sVertexShaderPassThrough;
