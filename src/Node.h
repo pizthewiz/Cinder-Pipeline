@@ -54,8 +54,8 @@ public:
 
     void setInputPortKeys(std::vector<std::string> keys) { mInputPortKeys = keys; }
     std::vector<std::string> getInputPortKeys() const { return mInputPortKeys; }
-    void setOutputPortKeys(std::vector<std::string> keys) { mOutputPortKeys = keys; }
-    std::vector<std::string> getOutputPortKeys() const { return mOutputPortKeys; }
+//    void setOutputPortKeys(std::vector<std::string> keys) { mOutputPortKeys = keys; }
+//    std::vector<std::string> getOutputPortKeys() const { return mOutputPortKeys; }
 
     std::vector<std::string> getImageInputPortKeys() {
         std::vector<std::string> filteredKeys;
@@ -84,7 +84,7 @@ public:
     virtual void connectOutputNode(const NodeRef& node, const std::string key = "image", const std::string outputPortKey = "image");
 
     std::tuple<NodeRef, std::string>& getConnectionForInputPortKey(const std::string key) { return mInputConnectionMap[key]; }
-    std::vector<std::tuple<NodeRef, std::string>>& getConnectionForOutputPortKey(const std::string key) { return mOutputConnectionMap[key]; }
+//    std::vector<std::tuple<NodeRef, std::string>>& getConnectionForOutputPortKey(const std::string key) { return mOutputConnectionMap[key]; }
 
 protected:
 //    friend class Pipeline;
@@ -103,13 +103,13 @@ protected:
     virtual void connectInputNode(const NodeRef& node, const std::string key = "image", const std::string inputPortKey = "image");
 
     std::vector<std::string> mInputPortKeys;
-    std::vector<std::string> mOutputPortKeys;
+//    std::vector<std::string> mOutputPortKeys;
 
     std::map<std::string, boost::any> mInputPortValueMap;
 //    std::map<std::string, boost::any> mOutputPortValueMap;
 
     std::map<std::string, std::tuple<NodeRef, std::string>> mInputConnectionMap;
-    std::map<std::string, std::vector<std::tuple<NodeRef, std::string>>> mOutputConnectionMap;
+//    std::map<std::string, std::vector<std::tuple<NodeRef, std::string>>> mOutputConnectionMap;
 };
 
 inline const NodeRef& operator>>(const NodeRef& input, const NodeRef& output) {

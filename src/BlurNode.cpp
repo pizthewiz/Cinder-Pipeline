@@ -55,8 +55,8 @@ BlurNodeRef BlurNode::create() {
 BlurNode::BlurNode() {
     std::vector<std::string> inputKeys = {"image", "sampleOffset"};
     setInputPortKeys(inputKeys);
-    std::vector<std::string> outputKeys = {"image"};
-    setOutputPortKeys(outputKeys);
+//    std::vector<std::string> outputKeys = {"image"};
+//    setOutputPortKeys(outputKeys);
 
     setupShader(sVertexShaderPassThrough, FragmentShaderBlur);
 }

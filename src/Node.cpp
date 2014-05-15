@@ -13,7 +13,7 @@ namespace Cinder { namespace Pipeline {
 
 void Node::connectOutputNode(const NodeRef& node, const std::string key, const std::string outputPortKey) {
     // check key exists, types match, no cycle
-    mOutputConnectionMap[outputPortKey].push_back(std::make_tuple(node, key));
+//    mOutputConnectionMap[outputPortKey].push_back(std::make_tuple(node, key));
     node->connectInputNode(shared_from_this(), outputPortKey, key);
 }
 
@@ -30,8 +30,8 @@ SourceNodeRef SourceNode::create() {
 SourceNode::SourceNode() {
     std::vector<std::string> inputKeys = {"texture"};
     setInputPortKeys(inputKeys);
-    std::vector<std::string> outputKeys = {"image"};
-    setOutputPortKeys(outputKeys);
+//    std::vector<std::string> outputKeys = {"image"};
+//    setOutputPortKeys(outputKeys);
 }
 
 void SourceNode::render(const FBOImageRef& outputFBOImage) {
