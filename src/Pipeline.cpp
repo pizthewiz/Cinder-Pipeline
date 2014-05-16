@@ -43,7 +43,7 @@ void Pipeline::setup(const Vec2i size) {
     std::vector<std::string> extensions = split(extensionsString, " ");
     extensions.erase(std::remove_if(extensions.begin(), extensions.end(), [](const std::string& s){ return s.empty(); }));
     cinder::app::console() << "GL_EXTENSIONS: " << std::endl;
-    for (auto e : extensions) {
+    for (const std::string& e : extensions) {
         cinder::app::console() << " " << e << std::endl;
     }
 
@@ -112,11 +112,11 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
 #if defined(DEBUG)
     // ASCII visualization
     cinder::app::console() << std::string(13, '#') << std::endl;
-    for (BranchRef b : renderStack) {
+    for (const BranchRef& b : renderStack) {
         unsigned int spaceCount = b->getMaxInputCost() * 5 + MAX((int)b->getMaxInputCost() - 1, 0) * 3;
         cinder::app::console() << std::string(spaceCount, ' ');
 
-        for (NodeRef n : b->getNodes()) {
+        for (const NodeRef& n : b->getNodes()) {
             if (!std::dynamic_pointer_cast<SourceNode>(n)) {
                 cinder::app::console() << " → ";
             }
@@ -146,7 +146,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
             }
             std::deque<std::tuple<int, NodeRef>> attachmentsStack;
 
-            for (BranchRef b : renderStack) {
+            for (const BranchRef& b : renderStack) {
                 size_t attachmentIndex = 0;
                 outAttachment = availableAttachments.at(attachmentIndex);
                 int inAttachment = -1;
@@ -184,7 +184,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
                                 inputAttachments.assign(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
                                 attachmentsStack.erase(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
 
-                                for (std::string key : imageInputPortKeys) {
+                                for (const std::string& key : imageInputPortKeys) {
                                     std::tuple<NodeRef, std::string> connection = e->getConnectionForInputPortKey(key);
                                     NodeRef inputNode = std::get<0>(connection);
                                     auto it = std::find_if(inputAttachments.begin(), inputAttachments.end(), [inputNode](std::tuple<int, NodeRef> t) {
@@ -241,7 +241,7 @@ BranchRef Pipeline::branchForNode(const NodeRef& node) {
                 std::tuple<NodeRef, std::string> connection = n->getConnectionForInputPortKey(imageInputPortKeys.at(0));
                 n = std::get<0>(connection);
             } else if (imageInputPortKeys.size() == 2) {
-                for (std::string key : imageInputPortKeys) {
+                for (const std::string& key : imageInputPortKeys) {
                     std::tuple<NodeRef, std::string> connection = n->getConnectionForInputPortKey(key);
                     BranchRef b = branchForNode(std::get<0>(connection));
                     branch->connectInputBranch(b);

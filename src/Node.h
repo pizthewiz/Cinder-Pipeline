@@ -59,7 +59,7 @@ public:
 
     std::vector<std::string> getImageInputPortKeys() {
         std::vector<std::string> filteredKeys;
-        for (std::string key : mInputPortKeys) {
+        for (const std::string& key : mInputPortKeys) {
             // TODO - filter on type, port.type == PortTypeFBOImage
             if (key.rfind("image", 0) != 0) {
                 continue;
