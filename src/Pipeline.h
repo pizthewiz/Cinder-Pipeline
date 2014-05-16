@@ -16,12 +16,12 @@ namespace Cinder { namespace Pipeline {
 
 typedef std::shared_ptr<class Pipeline> PipelineRef;
 typedef std::shared_ptr<class Branch> BranchRef;
-typedef std::shared_ptr<class Connection> BranchConnectionRef;
+typedef std::shared_ptr<class BranchConnection> BranchConnectionRef;
 
-class Connection : public std::enable_shared_from_this<Connection> {
+class BranchConnection : public std::enable_shared_from_this<BranchConnection> {
 public:
     static BranchConnectionRef create(const BranchRef& source, const BranchRef& destination = nullptr, unsigned int cost = 0) {
-        return BranchConnectionRef(new Connection(source, destination, cost))->shared_from_this();
+        return BranchConnectionRef(new BranchConnection(source, destination, cost))->shared_from_this();
     }
 
     BranchRef& getSourceBranch() {
@@ -30,16 +30,15 @@ public:
     BranchRef& getDestinationBranch() {
         return mDestinationBranch;
     }
-    Connection& setCost(unsigned int cost) {
+    void setCost(unsigned int cost) {
         mCost = cost;
-        return *this;
     }
     unsigned int getCost() const {
         return mCost;
     }
 
 private:
-    Connection(const BranchRef& source, const BranchRef& destination, unsigned int cost) : mSourceBranch(source), mDestinationBranch(destination), mCost(cost) {}
+    BranchConnection(const BranchRef& source, const BranchRef& destination, unsigned int cost) : mSourceBranch(source), mDestinationBranch(destination), mCost(cost) {}
 
     BranchRef mSourceBranch;
     BranchRef mDestinationBranch;
@@ -55,7 +54,7 @@ public:
     const std::deque<NodeRef>& getNodes() const { return mNodes; }
 
     void connectInputBranch(const BranchRef& branch) {
-        mInputConnections.push_back(Connection::create(branch, nullptr, branch->getMaxInputCost()));
+        mInputConnections.push_back(BranchConnection::create(branch, nullptr, branch->getMaxInputCost()));
 
         auto result = std::max_element(mInputConnections.begin(), mInputConnections.end(), [](const BranchConnectionRef& c1, const BranchConnectionRef& c2) {
             return c1->getCost() < c2->getCost();
