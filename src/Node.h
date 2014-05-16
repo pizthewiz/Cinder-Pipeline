@@ -52,8 +52,8 @@ public:
 
     virtual std::string getName() const = 0;
 
-    void setInputPortKeys(std::vector<std::string> keys) { mInputPortKeys = keys; }
-    std::vector<std::string> getInputPortKeys() const { return mInputPortKeys; }
+    void setInputPortKeys(std::vector<std::string>& keys) { mInputPortKeys = keys; }
+    std::vector<std::string>& getInputPortKeys() { return mInputPortKeys; }
 //    void setOutputPortKeys(std::vector<std::string> keys) { mOutputPortKeys = keys; }
 //    std::vector<std::string> getOutputPortKeys() const { return mOutputPortKeys; }
 
@@ -81,9 +81,9 @@ public:
         return boost::any_cast<T>(mInputPortValueMap[key]);
     }
 
-    virtual void connectOutputNode(const NodeRef& node, const std::string key = "image", const std::string outputPortKey = "image");
+    virtual void connectOutputNode(const NodeRef& node, const std::string& key = "image", const std::string& outputPortKey = "image");
 
-    std::tuple<NodeRef, std::string>& getConnectionForInputPortKey(const std::string key) { return mInputConnectionMap[key]; }
+    std::tuple<NodeRef, std::string>& getConnectionForInputPortKey(const std::string& key) { return mInputConnectionMap[key]; }
 //    std::vector<std::tuple<NodeRef, std::string>>& getConnectionForOutputPortKey(const std::string key) { return mOutputConnectionMap[key]; }
 
 protected:
@@ -100,7 +100,7 @@ protected:
 //        return boost::any_cast<T>(mOutputPortValueMap[key]);
 //    }
 
-    virtual void connectInputNode(const NodeRef& node, const std::string key = "image", const std::string inputPortKey = "image");
+    virtual void connectInputNode(const NodeRef& node, const std::string& key = "image", const std::string& inputPortKey = "image");
 
     std::vector<std::string> mInputPortKeys;
 //    std::vector<std::string> mOutputPortKeys;
@@ -112,9 +112,9 @@ protected:
 //    std::map<std::string, std::vector<std::tuple<NodeRef, std::string>>> mOutputConnectionMap;
 };
 
-inline const NodeRef& operator>>(const NodeRef& input, const NodeRef& output) {
-    input->connectOutputNode(output);
-    return output;
+inline const NodeRef& operator>>(const NodeRef& source, const NodeRef& destination) {
+    source->connectOutputNode(destination);
+    return destination;
 }
 
 class SourceNode : public Node {
@@ -141,7 +141,7 @@ public:
 protected:
     EffectorNode() {}
 
-    void setupShader(DataSourceRef vertexShader, DataSourceRef fragmentShader);
+    void setupShader(const DataSourceRef& vertexShader, const DataSourceRef& fragmentShader);
     void setupShader(const std::string& vertexShader, const std::string& fragmentShader);
 
     static const std::string sVertexShaderPassThrough;

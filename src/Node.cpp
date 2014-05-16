@@ -11,13 +11,13 @@
 
 namespace Cinder { namespace Pipeline {
 
-void Node::connectOutputNode(const NodeRef& node, const std::string key, const std::string outputPortKey) {
+void Node::connectOutputNode(const NodeRef& node, const std::string& key, const std::string& outputPortKey) {
     // check key exists, types match, no cycle
 //    mOutputConnectionMap[outputPortKey].push_back(std::make_tuple(node, key));
     node->connectInputNode(shared_from_this(), outputPortKey, key);
 }
 
-void Node::connectInputNode(const NodeRef& node, const std::string key, const std::string inputPortKey) {
+void Node::connectInputNode(const NodeRef& node, const std::string& key, const std::string& inputPortKey) {
     mInputConnectionMap[inputPortKey] = std::make_tuple(node, key);
 }
 
@@ -50,7 +50,7 @@ const std::string EffectorNode::sVertexShaderPassThrough = R"(
     }
 )";
 
-void EffectorNode::setupShader(DataSourceRef vertexShader, DataSourceRef fragmentShader) {
+void EffectorNode::setupShader(const DataSourceRef& vertexShader, const DataSourceRef& fragmentShader) {
     std::string vert = vertexShader ? loadString(vertexShader) : sVertexShaderPassThrough;
     std::string frag = loadString(fragmentShader);
     setupShader(vert, frag);
