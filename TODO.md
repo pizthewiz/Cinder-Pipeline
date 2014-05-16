@@ -8,7 +8,7 @@
 - mechanism to allow samplers?
 
 ### NODE
-- expose port descriptors, input ports
+- port types
 - validate node inputs and outputs, prevent cycles
 - don't recreate shaders, a single static one might be fine
 - RTT source via lambda?
