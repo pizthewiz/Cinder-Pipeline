@@ -17,8 +17,8 @@ void Node::connectOutputNode(const NodeRef& node, const std::string& key, const 
     node->connectInputNode(shared_from_this(), outputPortKey, key);
 }
 
-void Node::connectInputNode(const NodeRef& node, const std::string& key, const std::string& inputPortKey) {
-    mInputConnectionMap[inputPortKey] = std::make_tuple(node, key);
+void Node::connectInputNode(const NodeRef& source, const std::string& sourceKey, const std::string& destinationKey) {
+    mInputConnections[destinationKey] = NodeConnection::create(source, sourceKey, nullptr, destinationKey);
 }
 
 #pragma mark - SOURCE

@@ -20,10 +20,41 @@ using namespace ci;
 typedef std::shared_ptr<class Node> NodeRef;
 typedef std::shared_ptr<class SourceNode> SourceNodeRef;
 typedef std::shared_ptr<class EffectorNode> EffectorNodeRef;
+
+//typedef std::shared_ptr<class NodePort> NodePortRef;
+typedef std::shared_ptr<class NodeConnection> NodeConnectionRef;
 typedef std::shared_ptr<class FBOImage> FBOImageRef;
 
 // port: {key: K, type: T, minimum: N, maximum: X, default: D}
 // types: PortTypeFBOImage, PortTypeTexture, PortTypeFloat, PortTypeInt, PortTypeBool, PortTypeVec2f, PortTypeVec3f, PortTypeVec4f, PortTypeColor
+
+class NodeConnection : public std::enable_shared_from_this<NodeConnection> {
+public:
+    static NodeConnectionRef create(const NodeRef& source, const std::string& sourceKey, const NodeRef& destination, const std::string& destinationKey) {
+        return NodeConnectionRef(new NodeConnection(source, sourceKey, destination, destinationKey))->shared_from_this();
+    }
+
+    NodeRef& getSourceNode() {
+        return mSourceNode;
+    }
+    std::string& getSourcePortKey() {
+        return mSourcePortKey;
+    }
+    NodeRef& getDestinationNode() {
+        return mDestinationNode;
+    }
+    std::string& getDestinationPortKey() {
+        return mDestinationPortKey;
+    }
+
+private:
+    NodeConnection(const NodeRef& source, const std::string& sourceKey, const NodeRef& destination, const std::string& destinationKey) : mSourceNode(source), mSourcePortKey(sourceKey), mDestinationNode(destination), mDestinationPortKey(destinationKey) {}
+
+    NodeRef mSourceNode;
+    std::string mSourcePortKey;
+    NodeRef mDestinationNode;
+    std::string mDestinationPortKey;
+};
 
 class FBOImage : public std::enable_shared_from_this<FBOImage> {
 public:
@@ -83,7 +114,7 @@ public:
 
     virtual void connectOutputNode(const NodeRef& node, const std::string& key = "image", const std::string& outputPortKey = "image");
 
-    std::tuple<NodeRef, std::string>& getConnectionForInputPortKey(const std::string& key) { return mInputConnectionMap[key]; }
+    NodeConnectionRef& getConnectionForInputPortKey(const std::string& key) { return mInputConnections[key]; }
 //    std::vector<std::tuple<NodeRef, std::string>>& getConnectionForOutputPortKey(const std::string key) { return mOutputConnectionMap[key]; }
 
 protected:
@@ -108,7 +139,7 @@ protected:
     std::map<std::string, boost::any> mInputPortValueMap;
 //    std::map<std::string, boost::any> mOutputPortValueMap;
 
-    std::map<std::string, std::tuple<NodeRef, std::string>> mInputConnectionMap;
+    std::map<std::string, NodeConnectionRef> mInputConnections;
 //    std::map<std::string, std::vector<std::tuple<NodeRef, std::string>>> mOutputConnectionMap;
 };
 

@@ -125,6 +125,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
             name.resize(3, ' ');
             cinder::app::console() << "[" << name << "]";
         }
+        cinder::app::console() << " (" << b->getMaxInputCost() << ")";
         cinder::app::console() << std::endl;
     }
     cinder::app::console() << std::endl;
@@ -185,8 +186,8 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
                                 attachmentsStack.erase(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
 
                                 for (const std::string& key : imageInputPortKeys) {
-                                    std::tuple<NodeRef, std::string> connection = e->getConnectionForInputPortKey(key);
-                                    NodeRef inputNode = std::get<0>(connection);
+                                    NodeConnectionRef connection = e->getConnectionForInputPortKey(key);
+                                    NodeRef inputNode = connection->getSourceNode();
                                     auto it = std::find_if(inputAttachments.begin(), inputAttachments.end(), [inputNode](std::tuple<int, NodeRef> t) {
                                         return std::get<1>(t) == inputNode;
                                     });
@@ -238,12 +239,12 @@ BranchRef Pipeline::branchForNode(const NodeRef& node) {
         } else {
             std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
             if (imageInputPortKeys.size() == 1) {
-                std::tuple<NodeRef, std::string> connection = n->getConnectionForInputPortKey(imageInputPortKeys.at(0));
-                n = std::get<0>(connection);
+                NodeConnectionRef connection = n->getConnectionForInputPortKey(imageInputPortKeys.at(0));
+                n = connection->getSourceNode();
             } else if (imageInputPortKeys.size() == 2) {
                 for (const std::string& key : imageInputPortKeys) {
-                    std::tuple<NodeRef, std::string> connection = n->getConnectionForInputPortKey(key);
-                    BranchRef b = branchForNode(std::get<0>(connection));
+                    NodeConnectionRef connection = n->getConnectionForInputPortKey(key);
+                    BranchRef b = branchForNode(connection->getSourceNode());
                     branch->connectInputBranch(b);
                 }
 
