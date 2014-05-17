@@ -53,8 +53,11 @@ BlurNodeRef BlurNode::create() {
 }
 
 BlurNode::BlurNode() {
-    std::vector<std::string> inputKeys = {"image", "sampleOffset"};
-    setInputPortKeys(inputKeys);
+    std::vector<NodePortRef> inputPorts = {
+        NodePort::create("image", NodePortType::FBOImage),
+        NodePort::create("sampleOffset", NodePortType::Vec2f),
+    };
+    setInputPorts(inputPorts);
 //    std::vector<std::string> outputKeys = {"image"};
 //    setOutputPortKeys(outputKeys);
 

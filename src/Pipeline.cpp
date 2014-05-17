@@ -186,7 +186,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
                                 attachmentsStack.erase(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
 
                                 for (const std::string& key : imageInputPortKeys) {
-                                    NodeConnectionRef connection = e->getConnectionForInputPortKey(key);
+                                    NodePortConnectionRef connection = e->getConnectionForInputPortKey(key);
                                     NodeRef inputNode = connection->getSourceNode();
                                     auto it = std::find_if(inputAttachments.begin(), inputAttachments.end(), [inputNode](std::tuple<int, NodeRef> t) {
                                         return std::get<1>(t) == inputNode;
@@ -239,11 +239,11 @@ BranchRef Pipeline::branchForNode(const NodeRef& node) {
         } else {
             std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
             if (imageInputPortKeys.size() == 1) {
-                NodeConnectionRef connection = n->getConnectionForInputPortKey(imageInputPortKeys.at(0));
+                NodePortConnectionRef connection = n->getConnectionForInputPortKey(imageInputPortKeys.at(0));
                 n = connection->getSourceNode();
             } else if (imageInputPortKeys.size() == 2) {
                 for (const std::string& key : imageInputPortKeys) {
-                    NodeConnectionRef connection = n->getConnectionForInputPortKey(key);
+                    NodePortConnectionRef connection = n->getConnectionForInputPortKey(key);
                     BranchRef b = branchForNode(connection->getSourceNode());
                     branch->connectInputBranch(b);
                 }
