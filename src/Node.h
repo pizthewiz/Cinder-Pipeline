@@ -116,6 +116,15 @@ public:
         return filteredKeys;
     }
 
+    NodePortRef inputPortForKey(const std::string& key) {
+        NodePortRef port = nullptr;
+        auto it = std::find_if(getInputPorts().begin(), getInputPorts().end(), [key](const NodePortRef& p){ return p->getKey() == key; });
+        if (it != getInputPorts().end()) {
+            port = *it;
+        }
+        return port;
+    }
+
     template <typename T>
     void setValueForInputPortKey(T value, const std::string& key) {
         mInputPortValueMap[key] = value;
