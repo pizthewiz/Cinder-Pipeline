@@ -13,4 +13,7 @@
 #endif
 
 #include "Node.h"
+#include "SourceNode.h"
+#include "EffectorNode.h"
+#include "Branch.h"
 #include "Pipeline.h"

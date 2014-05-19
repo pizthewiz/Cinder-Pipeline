@@ -18,15 +18,13 @@ namespace Cinder { namespace Pipeline {
 using namespace ci;
 
 typedef std::shared_ptr<class Node> NodeRef;
-typedef std::shared_ptr<class SourceNode> SourceNodeRef;
-typedef std::shared_ptr<class EffectorNode> EffectorNodeRef;
-
 typedef std::shared_ptr<class NodePort> NodePortRef;
 typedef std::shared_ptr<class FBOImage> FBOImageRef;
 typedef std::shared_ptr<class NodePortConnection> NodePortConnectionRef;
 
 enum class NodePortType {FBOImage, Texture, Float, Int, Bool, Vec2f};
 
+// default, min, max
 class NodePort : public std::enable_shared_from_this<NodePort> {
 public:
     static NodePortRef create(const std::string& key, const NodePortType type = NodePortType::FBOImage) {
@@ -162,36 +160,5 @@ inline const NodeRef& operator>>(const NodeRef& source, const NodeRef& destinati
     source->connectOutputNode(destination);
     return destination;
 }
-
-class SourceNode : public Node {
-public:
-    static SourceNodeRef create();
-    virtual ~SourceNode() {}
-
-    virtual std::string getName() const { return "Source"; }
-
-    virtual void render(const FBOImageRef& outputFBOImage);
-
-protected:
-    SourceNode();
-};
-
-class EffectorNode : public Node {
-public:
-    virtual ~EffectorNode() {}
-
-    virtual std::string getName() const { return "Effector"; }
-
-    virtual void render(const FBOImageRef& outputFBOImage) {}
-
-protected:
-    EffectorNode() {}
-
-    void setupShader(const DataSourceRef& vertexShader, const DataSourceRef& fragmentShader);
-    void setupShader(const std::string& vertexShader, const std::string& fragmentShader);
-
-    static const std::string sVertexShaderPassThrough;
-    gl::GlslProgRef mShader;
-};
 
 }}

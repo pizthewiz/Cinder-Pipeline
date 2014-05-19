@@ -7,6 +7,8 @@
 //
 
 #include "Pipeline.h"
+#include "SourceNode.h"
+#include "EffectorNode.h"
 #include "cinder/Utilities.h"
 
 using namespace ci;

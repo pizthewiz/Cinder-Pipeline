@@ -8,7 +8,7 @@
 
 #pragma once
 
-#include "Node.h"
+#include "EffectorNode.h"
 
 using namespace Cinder::Pipeline;
 
