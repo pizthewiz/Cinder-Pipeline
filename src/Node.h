@@ -71,6 +71,11 @@ public:
         return NodePortConnectionRef(new NodePortConnection(source, sourceKey, destination, destinationKey))->shared_from_this();
     }
 
+    ~NodePortConnection() {
+        mSourceNode = nullptr;
+        mDestinationNode = nullptr;
+    }
+
     NodeRef& getSourceNode() {
         return mSourceNode;
     }
