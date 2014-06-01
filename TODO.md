@@ -8,10 +8,10 @@
 - mechanism to allow samplers?
 
 ### NODE
-- port types
 - validate node inputs and outputs, prevent cycles
+- min, max, default
 - don't recreate shaders, a single static one might be fine
-- RTT source via lambda?
+- texture, FBOImage, RTT source nodes
 - multi-pass shaders
 - if not using ci::gl::GlslProg, consider using [GL_ARB_separate_shader_objects](http://www.opengl.org/registry/specs/ARB/separate_shader_objects.txt) once Cinder supports OpenGL 4.1+. Also see [One Year of Porting](http://www.slideshare.net/slideshow/embed_code/34431339?rel=0#) and [A bit of perspective on OpenGL 4.1 separate programs](http://www.g-truc.net/post-0348.html).
 - wrap fsevent for shader reloading?
