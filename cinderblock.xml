@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <cinder>
 <block
-    name="Cinder-Pipeline"
+    name="Pipeline"
     id="com.chordedconstructions.fleshworld.cinder-pipeline"
     git="https://github.com/pizthewiz/Cinder-Pipeline.git"
     author="Jean-Pierre Mouilleseaux"
