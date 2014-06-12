@@ -10,16 +10,16 @@
 
 namespace Cinder { namespace Pipeline {
 
-void Node::connectOutputNode(const NodeRef& node, const std::string& key, const std::string& outputPortKey) {
-    if (!node->inputPortForKey(key)) {
-        cinder::app::console() << "ERROR - attempting to connect to unknown input port '" << key << "'" << std::endl;
+void Node::connectOutputNode(const NodeRef& destination, const std::string& destinationKey, const std::string& sourceKey) {
+    if (!destination->getInputPortForKey(destinationKey)) {
+        cinder::app::console() << "ERROR - attempting to connect to unknown input port '" << destinationKey << "'" << std::endl;
         return;
     }
 
     // TODO - check that types match, no cycle
     
 //    mOutputConnectionMap[outputPortKey].push_back(std::make_tuple(node, key));
-    node->connectInputNode(shared_from_this(), outputPortKey, key);
+    destination->connectInputNode(shared_from_this(), sourceKey, destinationKey);
 }
 
 void Node::connectInputNode(const NodeRef& source, const std::string& sourceKey, const std::string& destinationKey) {
