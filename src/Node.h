@@ -128,6 +128,9 @@ public:
 	inline T getValueForInputPortKey(const std::string& key) {
         return boost::any_cast<T>(mInputPortValueMap[key]);
     }
+    inline bool hasValueForInputPortKey(const std::string& key) {
+        return mInputPortValueMap.find(key) != mInputPortValueMap.end();
+    }
 
     virtual void connectOutputNode(const NodeRef& node, const std::string& key = "image", const std::string& outputPortKey = "image");
 
