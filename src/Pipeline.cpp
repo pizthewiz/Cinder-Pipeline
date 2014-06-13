@@ -15,9 +15,6 @@ using namespace ci;
 
 namespace Cinder { namespace Pipeline {
 
-// NB - max inputs + 1 should suffice as long as the render stack is ordered properly
-#define NUM_ATTACHMENTS 3
-
 PipelineRef Pipeline::create() {
     return PipelineRef(new Pipeline())->shared_from_this();
 }
@@ -30,7 +27,7 @@ Pipeline::~Pipeline() {
 
 #pragma mark -
 
-void Pipeline::setup(const Vec2i size) {
+void Pipeline::setup(const Vec2i size, int attachments) {
 #if defined(DEBUG)
     const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     cinder::app::console() << "GL_RENDERER: " << renderer << std::endl;
@@ -92,16 +89,16 @@ void Pipeline::setup(const Vec2i size) {
 //    }
 
     gl::Fbo::Format format;
-    format.enableColorBuffer(true, NUM_ATTACHMENTS);
+    format.enableColorBuffer(true, attachments);
     format.enableDepthBuffer(false);
 
     mFBO = gl::Fbo(size.x, size.y, format);
     mFBO.bindFramebuffer(); {
-        GLenum buffers[NUM_ATTACHMENTS];
-        for (unsigned int idx = 0; idx < NUM_ATTACHMENTS; idx++) {
+        GLenum buffers[attachments];
+        for (unsigned int idx = 0; idx < attachments; idx++) {
             buffers[idx] = GL_COLOR_ATTACHMENT0 + idx;
         }
-        glDrawBuffers(NUM_ATTACHMENTS, buffers);
+        glDrawBuffers(attachments, buffers);
         gl::setViewport(mFBO.getBounds());
         gl::clear();
     } mFBO.unbindFramebuffer();
@@ -144,7 +141,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
 
             // int instead of GLenum for Cinder's FBO bindTexture/getTexture
             std::vector<int> availableAttachments;
-            for (unsigned int idx = 0; idx < NUM_ATTACHMENTS; idx++) {
+            for (unsigned int idx = 0; idx < mFBO.getFormat().getNumColorBuffers(); idx++) {
                 availableAttachments.push_back(idx);
             }
             std::deque<std::tuple<int, NodeRef>> attachmentsStack;
