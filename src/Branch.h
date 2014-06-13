@@ -23,10 +23,10 @@ public:
 
     ~BranchConnection() {}
 
-    BranchRef& getSourceBranch() {
+    inline BranchRef& getSourceBranch() {
         return mSourceBranch;
     }
-    BranchRef& getDestinationBranch() {
+    inline BranchRef& getDestinationBranch() {
         return mDestinationBranch;
     }
     void setCost(unsigned int cost) {
