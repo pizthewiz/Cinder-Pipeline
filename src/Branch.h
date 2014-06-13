@@ -21,10 +21,7 @@ public:
         return BranchConnectionRef(new BranchConnection(source, destination, cost))->shared_from_this();
     }
 
-    ~BranchConnection() {
-        mSourceBranch = nullptr;
-        mDestinationBranch = nullptr;
-    }
+    ~BranchConnection() {}
 
     BranchRef& getSourceBranch() {
         return mSourceBranch;

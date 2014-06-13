@@ -19,9 +19,7 @@ typedef std::shared_ptr<class EffectorNode> EffectorNodeRef;
 
 class EffectorNode : public Node {
 public:
-    virtual ~EffectorNode() {
-        mShader = nullptr;
-    }
+    virtual ~EffectorNode() {}
 
     virtual std::string getName() const { return "Effector"; }
 
