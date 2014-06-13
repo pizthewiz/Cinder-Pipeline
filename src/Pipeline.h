@@ -21,7 +21,7 @@ public:
     static PipelineRef create();
     ~Pipeline();
 
-    // NB - max required = max node inputs + 1 = 2 + 1 = 3
+    // NB - attachments = max FBOImage input ports in any node + 1
     void setup(const Vec2i size, int attachments = 3);
 
     gl::Texture& evaluate(const NodeRef& node);

@@ -71,12 +71,12 @@ void Pipeline::setup(const Vec2i size, int attachments) {
 //    }
 //
 //    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &texSize);
-//    if (NUM_ATTACHMENTS > GL_MAX_COLOR_ATTACHMENTS) {
-//        cinder::app::console() << "ERROR - number of attachments '" << NUM_ATTACHMENTS << "' exceeds '" << texSize << "'" << std::endl;
+//    if (attachments > GL_MAX_COLOR_ATTACHMENTS) {
+//        cinder::app::console() << "ERROR - number of attachments '" << attachments << "' exceeds '" << texSize << "'" << std::endl;
 //    }
 //
 //    float attachmentMemorySizeMB = size.x * size.y * 4 / 1024 / 1024;
-//    float totalSizeMB = attachmentMemorySizeMB * NUM_ATTACHMENTS;
+//    float totalSizeMB = attachmentMemorySizeMB * attachments;
 //
 //    if (gl::isExtensionAvailable("GL_NV_texture_barrier")) {
 //        if (texSize >= 2 * size.x && texSize >= size.y) {
