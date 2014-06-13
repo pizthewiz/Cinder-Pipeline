@@ -179,7 +179,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
                                 e->render(outputFBOImage);
 
                                 inAttachment = outAttachment;
-                            } else if (numberOfImageInputPorts == 2) {
+                            } else if (numberOfImageInputPorts > 1) {
                                 std::vector<std::tuple<int, NodeRef>> inputAttachments(numberOfImageInputPorts);
                                 inputAttachments.assign(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
                                 attachmentsStack.erase(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
@@ -240,7 +240,7 @@ BranchRef Pipeline::branchForNode(const NodeRef& node) {
             if (imageInputPortKeys.size() == 1) {
                 NodePortConnectionRef connection = n->getConnectionForInputPortKey(imageInputPortKeys.at(0));
                 n = connection->getSourceNode();
-            } else if (imageInputPortKeys.size() == 2) {
+            } else if (imageInputPortKeys.size() > 1) {
                 for (const std::string& key : imageInputPortKeys) {
                     NodePortConnectionRef connection = n->getConnectionForInputPortKey(key);
                     BranchRef b = branchForNode(connection->getSourceNode());
