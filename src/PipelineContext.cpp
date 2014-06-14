@@ -1,12 +1,12 @@
 //
-//  Pipeline.cpp
+//  PipelineContext.cpp
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 19 Apr 2014.
 //  Copyright 2014 Chorded Constructions. All rights reserved.
 //
 
-#include "Pipeline.h"
+#include "PipelineContext.h"
 #include "SourceNode.h"
 #include "EffectorNode.h"
 #include "cinder/Utilities.h"
@@ -15,19 +15,19 @@ using namespace ci;
 
 namespace Cinder { namespace Pipeline {
 
-PipelineRef Pipeline::create() {
-    return PipelineRef(new Pipeline())->shared_from_this();
+PipelineContextRef PipelineContext::create() {
+    return PipelineContextRef(new PipelineContext())->shared_from_this();
 }
 
-Pipeline::Pipeline() {
+PipelineContext::PipelineContext() {
 }
 
-Pipeline::~Pipeline() {
+PipelineContext::~PipelineContext() {
 }
 
 #pragma mark -
 
-void Pipeline::setup(const Vec2i size, int attachments) {
+void PipelineContext::setup(const Vec2i size, int attachments) {
 #if defined(DEBUG)
     const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     cinder::app::console() << "GL_RENDERER: " << renderer << std::endl;
@@ -104,25 +104,25 @@ void Pipeline::setup(const Vec2i size, int attachments) {
     } mFBO.unbindFramebuffer();
 }
 
-void Pipeline::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const NodePortRef& destinationPort) {
+void PipelineContext::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const NodePortRef& destinationPort) {
     NodePortConnectionRef connection = NodePortConnection::create(sourceNode, "image", destinationNode, destinationPort->getKey());
     mConnections.push_back(connection);
 }
 
-void Pipeline::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const std::string& destinationNodePortKey) {
+void PipelineContext::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const std::string& destinationNodePortKey) {
     NodePortRef destinationPort = destinationNode->getInputPortForKey(destinationNodePortKey);
     connectNodes(sourceNode, destinationNode, destinationPort);
 }
 
-void Pipeline::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode) {
+void PipelineContext::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode) {
     connectNodes(sourceNode, destinationNode, "image");
 }
 
-//void Pipeline::disconnectNodes(const NodePortConnectionRef& connection) {
+//void PipelineContext::disconnectNodes(const NodePortConnectionRef& connection) {
 //    // TODO - ???
 //}
 
-gl::Texture& Pipeline::evaluate(const NodeRef& node) {
+gl::Texture& PipelineContext::evaluate(const NodeRef& node) {
     BranchRef root = branchForNode(node);
     std::deque<BranchRef> renderStack = renderStackForRootBranch(root);
 
@@ -243,7 +243,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
 
 #pragma mark - PRIVATE
 
-BranchRef Pipeline::branchForNode(const NodeRef& node) {
+BranchRef PipelineContext::branchForNode(const NodeRef& node) {
     std::deque<NodeRef> nodes;
     BranchRef branch = Branch::create();
 
@@ -274,7 +274,7 @@ BranchRef Pipeline::branchForNode(const NodeRef& node) {
     return branch;
 }
 
-std::deque<BranchRef> Pipeline::renderStackForRootBranch(const BranchRef& branch) {
+std::deque<BranchRef> PipelineContext::renderStackForRootBranch(const BranchRef& branch) {
     std::deque<BranchRef> renderStack;
     std::deque<BranchRef> branchStack;
 
