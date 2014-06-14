@@ -24,6 +24,20 @@ public:
     // NB - attachments = max FBOImage input ports in any node + 1
     void setup(const Vec2i size, int attachments = 3);
 
+    template<typename NodeT>
+    std::shared_ptr<NodeT> makeNode(NodeT* node) {
+        std::shared_ptr<NodeT> result(node);
+//        result->setContext(shared_from_this());
+        mNodes.push_back(result);
+        return result;
+    }
+    // TODO - destroy
+
+    void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
+    void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const std::string& destinationNodePortKey);
+    void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode);
+//    void disconnectNodes(const NodePortConnectionRef& connection);
+
     gl::Texture& evaluate(const NodeRef& node);
 
 private:
@@ -33,6 +47,9 @@ private:
     std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
 
     gl::Fbo mFBO;
+
+    std::vector<NodeRef> mNodes;
+    std::vector<NodePortConnectionRef> mConnections;
 };
 
 }}

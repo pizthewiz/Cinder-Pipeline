@@ -104,6 +104,24 @@ void Pipeline::setup(const Vec2i size, int attachments) {
     } mFBO.unbindFramebuffer();
 }
 
+void Pipeline::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const NodePortRef& destinationPort) {
+    NodePortConnectionRef connection = NodePortConnection::create(sourceNode, "image", destinationNode, destinationPort->getKey());
+    mConnections.push_back(connection);
+}
+
+void Pipeline::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const std::string& destinationNodePortKey) {
+    NodePortRef destinationPort = destinationNode->getInputPortForKey(destinationNodePortKey);
+    connectNodes(sourceNode, destinationNode, destinationPort);
+}
+
+void Pipeline::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode) {
+    connectNodes(sourceNode, destinationNode, "image");
+}
+
+//void Pipeline::disconnectNodes(const NodePortConnectionRef& connection) {
+//    // TODO - ???
+//}
+
 gl::Texture& Pipeline::evaluate(const NodeRef& node) {
     BranchRef root = branchForNode(node);
     std::deque<BranchRef> renderStack = renderStackForRootBranch(root);
