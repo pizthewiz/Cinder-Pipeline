@@ -15,6 +15,36 @@
 namespace Cinder { namespace Pipeline {
 
 typedef std::shared_ptr<class PipelineContext> PipelineContextRef;
+typedef std::shared_ptr<class NodePortConnection> NodePortConnectionRef;
+
+class NodePortConnection : public std::enable_shared_from_this<NodePortConnection> {
+public:
+    static NodePortConnectionRef create(const NodeRef& source, const std::string& sourceKey, const NodeRef& destination, const std::string& destinationKey) {
+        return NodePortConnectionRef(new NodePortConnection(source, sourceKey, destination, destinationKey))->shared_from_this();
+    }
+
+    inline NodeRef& getSourceNode() {
+        return mSourceNode;
+    }
+    inline std::string& getSourcePortKey() {
+        return mSourcePortKey;
+    }
+    inline NodeRef& getDestinationNode() {
+        return mDestinationNode;
+    }
+    inline std::string& getDestinationPortKey() {
+        return mDestinationPortKey;
+    }
+
+private:
+    NodePortConnection(const NodeRef& source, const std::string& sourceKey, const NodeRef& destination, const std::string& destinationKey) : mSourceNode(source), mSourcePortKey(sourceKey), mDestinationNode(destination), mDestinationPortKey(destinationKey) {}
+
+    NodeRef mSourceNode;
+    std::string mSourcePortKey;
+    NodeRef mDestinationNode;
+    std::string mDestinationPortKey;
+};
+
 
 class PipelineContext : public std::enable_shared_from_this<PipelineContext> {
 public:
@@ -31,24 +61,34 @@ public:
         mNodes.push_back(result);
         return result;
     }
-    // TODO - destroy
 
-    void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
     void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const std::string& destinationNodePortKey);
     void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode);
-//    void disconnectNodes(const NodePortConnectionRef& connection);
+
+    inline NodePortConnectionRef getConnectionForNodeWithInputPortKey(const NodeRef& node, const std::string& portKey) {
+        NodePortConnectionRef connection = nullptr;
+        auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](const NodePortConnectionRef& c){
+            return c->getDestinationNode() == node && c->getDestinationPortKey() == portKey;
+        });
+        if (it != mConnections.end()) {
+            connection = *it;
+        }
+        return connection;
+    }
 
     gl::Texture& evaluate(const NodeRef& node);
 
 private:
     PipelineContext();
 
+    void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
     BranchRef branchForNode(const NodeRef& node);
     std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
 
     gl::Fbo mFBO;
 
     std::vector<NodeRef> mNodes;
+    // TODO - improve to a map maybe?
     std::vector<NodePortConnectionRef> mConnections;
 };
 

@@ -104,7 +104,10 @@ void PipelineContext::setup(const Vec2i size, int attachments) {
     } mFBO.unbindFramebuffer();
 }
 
+#pragma mark - CONNECTIONS
+
 void PipelineContext::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const NodePortRef& destinationPort) {
+    // TODO - replace existing
     NodePortConnectionRef connection = NodePortConnection::create(sourceNode, "image", destinationNode, destinationPort->getKey());
     mConnections.push_back(connection);
 }
@@ -118,9 +121,7 @@ void PipelineContext::connectNodes(const NodeRef& sourceNode, const NodeRef& des
     connectNodes(sourceNode, destinationNode, "image");
 }
 
-//void PipelineContext::disconnectNodes(const NodePortConnectionRef& connection) {
-//    // TODO - ???
-//}
+#pragma mark -
 
 gl::Texture& PipelineContext::evaluate(const NodeRef& node) {
     BranchRef root = branchForNode(node);
@@ -203,7 +204,7 @@ gl::Texture& PipelineContext::evaluate(const NodeRef& node) {
                                 attachmentsStack.erase(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
 
                                 for (const std::string& key : imageInputPortKeys) {
-                                    NodePortConnectionRef connection = e->getConnectionForInputPortKey(key);
+                                    NodePortConnectionRef connection = getConnectionForNodeWithInputPortKey(e, key);
                                     NodeRef inputNode = connection->getSourceNode();
                                     auto it = std::find_if(inputAttachments.begin(), inputAttachments.end(), [inputNode](std::tuple<int, NodeRef> t) {
                                         return std::get<1>(t) == inputNode;
@@ -241,7 +242,7 @@ gl::Texture& PipelineContext::evaluate(const NodeRef& node) {
     return mFBO.getTexture(outAttachment);
 }
 
-#pragma mark - PRIVATE
+#pragma mark -
 
 BranchRef PipelineContext::branchForNode(const NodeRef& node) {
     std::deque<NodeRef> nodes;
@@ -256,11 +257,11 @@ BranchRef PipelineContext::branchForNode(const NodeRef& node) {
         } else {
             std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
             if (imageInputPortKeys.size() == 1) {
-                NodePortConnectionRef connection = n->getConnectionForInputPortKey(imageInputPortKeys.at(0));
+                NodePortConnectionRef connection = getConnectionForNodeWithInputPortKey(n, imageInputPortKeys.at(0));
                 n = connection->getSourceNode();
             } else if (imageInputPortKeys.size() > 1) {
                 for (const std::string& key : imageInputPortKeys) {
-                    NodePortConnectionRef connection = n->getConnectionForInputPortKey(key);
+                    NodePortConnectionRef connection = getConnectionForNodeWithInputPortKey(n, key);
                     BranchRef b = branchForNode(connection->getSourceNode());
                     branch->connectInputBranch(b);
                 }
