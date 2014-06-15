@@ -1,12 +1,12 @@
 # Cinder-Pipeline
 `Cinder-Pipeline` is an imaging pipeline to construct and evaluate chained shader-based effectors.
 
-A `Pipeline` is the context around which nodes are created and evaluated. `Pipeline` evaluates a `Node` by analyzing the node's input dependencies and constructs a collection of ordered `Branch` to represent the render order.
+A `Context` is the container around which nodes are created, connections are made and nodes are evaluated. `Context` evaluates a `Node` by walking up the tree through the node's input connections and constructs a collection of ordered `Branch`.
 A `Node` has multiple input `NodePort` which are both keyed and typed. Several data types are supported:
 ```C++
 enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f};
 ```
-Although multiple data types are supported, being an imaging pipeline, dependencies are only calculated on `NodePortType::FBOImage` ports. Supporting that, all `Node` instances have a fixed single output port `"image"` of type `NodePortType::FBOImage`.
+Although multiple data types are supported, being an imaging pipeline, dependencies are only calculated on `NodePortType::FBOImage` ports. Supporting that, all `Node` instances have an implicit output port `"image"` of type `NodePortType::FBOImage`.
 
 Currently there are two derived node classes, `SourceNode` and `EffectorNode`. `SourceNode` is intended to be used directly and has a port `"texture"` of type `NodePortType::Texture` (internally `gl::TextureRef`) that is simply intended to bring textures into the pipeline. `EffectorNode` is intended to act as a base class for shader-based operators and the input ports can vary based on the specific need.
 
