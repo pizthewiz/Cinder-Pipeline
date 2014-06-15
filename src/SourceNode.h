@@ -27,7 +27,6 @@ public:
 
     virtual void render(const FBOImageRef& outputFBOImage) {
         gl::TextureRef texture = getValueForInputPortKey<gl::TextureRef>("texture");
-
         gl::draw(texture);
     }
     

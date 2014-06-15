@@ -115,7 +115,6 @@ public:
     }
 
 protected:
-
     std::vector<NodePortRef> mInputPorts;
     std::map<std::string, boost::any> mInputPortValueMap;
 };
