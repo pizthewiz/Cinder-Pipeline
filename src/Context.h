@@ -1,5 +1,5 @@
 //
-//  PipelineContext.h
+//  Context.h
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 19 Apr 2014.
@@ -14,7 +14,7 @@
 
 namespace Cinder { namespace Pipeline {
 
-typedef std::shared_ptr<class PipelineContext> PipelineContextRef;
+typedef std::shared_ptr<class Context> ContextRef;
 typedef std::shared_ptr<class NodePortConnection> NodePortConnectionRef;
 
 class NodePortConnection : public std::enable_shared_from_this<NodePortConnection> {
@@ -46,10 +46,10 @@ private:
 };
 
 
-class PipelineContext : public std::enable_shared_from_this<PipelineContext> {
+class Context : public std::enable_shared_from_this<Context> {
 public:
-    static PipelineContextRef create();
-    ~PipelineContext();
+    static ContextRef create();
+    ~Context();
 
     // NB - attachments = max FBOImage input ports in any node + 1
     void setup(const Vec2i size, int attachments = 3);
@@ -79,7 +79,7 @@ public:
     gl::Texture& evaluate(const NodeRef& node);
 
 private:
-    PipelineContext();
+    Context();
 
     void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
     BranchRef branchForNode(const NodeRef& node);
