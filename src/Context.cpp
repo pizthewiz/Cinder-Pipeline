@@ -107,9 +107,8 @@ void Context::setup(const Vec2i size, int attachments) {
 #pragma mark - CONNECTIONS
 
 void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const NodePortRef& destinationPort) {
-    // TODO - replace existing
     NodePortConnectionRef connection = NodePortConnection::create(sourceNode, "image", destinationNode, destinationPort->getKey());
-    mConnections.push_back(connection);
+    mInputConnections[destinationNode][destinationPort->getKey()] = connection;
 }
 
 void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const std::string& destinationNodePortKey) {

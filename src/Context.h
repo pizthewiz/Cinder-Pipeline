@@ -66,14 +66,7 @@ public:
     void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode);
 
     inline NodePortConnectionRef getConnectionForNodeWithInputPortKey(const NodeRef& node, const std::string& portKey) {
-        NodePortConnectionRef connection = nullptr;
-        auto it = std::find_if(mConnections.begin(), mConnections.end(), [&](const NodePortConnectionRef& c){
-            return c->getDestinationNode() == node && c->getDestinationPortKey() == portKey;
-        });
-        if (it != mConnections.end()) {
-            connection = *it;
-        }
-        return connection;
+        return mInputConnections[node][portKey];
     }
 
     gl::Texture& evaluate(const NodeRef& node);
@@ -88,8 +81,8 @@ private:
     gl::Fbo mFBO;
 
     std::vector<NodeRef> mNodes;
-    // TODO - improve to a map maybe?
-    std::vector<NodePortConnectionRef> mConnections;
+    // {node -> {key -> connection}}
+    std::map<NodeRef, std::map<std::string, NodePortConnectionRef>> mInputConnections;
 };
 
 }}
