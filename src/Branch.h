@@ -17,7 +17,7 @@ typedef std::shared_ptr<class BranchConnection> BranchConnectionRef;
 
 class BranchConnection : public std::enable_shared_from_this<BranchConnection> {
 public:
-    static BranchConnectionRef create(const BranchRef& source, const BranchRef& destination = nullptr, unsigned int cost = 0) {
+    static BranchConnectionRef create(const BranchRef& source, const BranchRef& destination, unsigned int cost = 0) {
         return BranchConnectionRef(new BranchConnection(source, destination, cost))->shared_from_this();
     }
 
@@ -29,10 +29,7 @@ public:
     inline BranchRef& getDestinationBranch() {
         return mDestinationBranch;
     }
-    void setCost(unsigned int cost) {
-        mCost = cost;
-    }
-    unsigned int getCost() const {
+    inline unsigned int getCost() const {
         return mCost;
     }
 
@@ -53,7 +50,8 @@ public:
     const std::deque<NodeRef>& getNodes() const { return mNodes; }
 
     void connectInputBranch(const BranchRef& branch) {
-        mInputConnections.push_back(BranchConnection::create(branch, nullptr, branch->getMaxInputCost()));
+        BranchConnectionRef connection = BranchConnection::create(branch, shared_from_this(), branch->getMaxInputCost());
+        mInputConnections.push_back(connection);
 
         auto result = std::max_element(mInputConnections.begin(), mInputConnections.end(), [](const BranchConnectionRef& c1, const BranchConnectionRef& c2) {
             return c1->getCost() < c2->getCost();
@@ -61,23 +59,23 @@ public:
         unsigned int cost = mInputConnections.at(std::distance(mInputConnections.begin(), result))->getCost();
         setMaxInputCost(cost + (unsigned int)mInputConnections.size());
 
-//        branch->connectOutputBranch(shared_from_this());
+        branch->addOutputConnection(connection);
     }
 
     std::vector<BranchConnectionRef>& getInputConnections() { return mInputConnections; }
-//    std::vector<BranchRef>& getOutputConnections() { return mOutputConnections; }
+    std::vector<BranchConnectionRef>& getOutputConnections() { return mOutputConnections; }
 
     void setMaxInputCost(unsigned int cost) { mMaxInputCost = cost; }
     unsigned int getMaxInputCost() const { return mMaxInputCost; }
 
 private:
     Branch() : mMaxInputCost(0) {}
-    
-//    void connectOutputBranch(const BranchRef& branch) { mOutputBranches.push_back(Connection::create(branch)); }
+
+    void addOutputConnection(const BranchConnectionRef& connection) { mOutputConnections.push_back(connection); }
 
     std::deque<NodeRef> mNodes;
     std::vector<BranchConnectionRef> mInputConnections;
-//    std::vector<BranchConnectionRef> mOutputConnections;
+    std::vector<BranchConnectionRef> mOutputConnections;
     unsigned int mMaxInputCost;
 };
 
