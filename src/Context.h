@@ -65,8 +65,40 @@ public:
     void connectNodes(const NodeRef& sourceNode, const std::string& sourceNodePortKey, const NodeRef& destinationNode, const std::string& destinationNodePortKey);
     void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode);
 
-    inline NodePortConnectionRef getConnectionForNodeWithInputPortKey(const NodeRef& node, const std::string& portKey) {
+    inline std::map<std::string, NodePortConnectionRef> getInputConnectionsForNode(const NodeRef& node) {
+        return mInputConnections[node];
+    }
+    std::vector<NodePortConnectionRef> getInputConnectionsForNodeWithPortType(const NodeRef& node, NodePortType type) {
+        std::vector<NodePortConnectionRef> filteredConnections;
+        for (auto& kv : mInputConnections[node]) {
+            NodePortRef port = node->getInputPortForKey(kv.first);
+            if (port->getType() != type) {
+                continue;
+            }
+            filteredConnections.push_back(kv.second);
+        }
+        return filteredConnections;
+    }
+    inline NodePortConnectionRef getInputConnectionForNodeWithPortKey(const NodeRef& node, const std::string& portKey) {
         return mInputConnections[node][portKey];
+    }
+    inline std::map<std::string, std::vector<NodePortConnectionRef>> getOutputConnectionsForNode(const NodeRef& node) {
+        return mOutputConnections[node];
+    }
+    std::vector<NodePortConnectionRef> getOutputConnectionsForNodeWithPortType(const NodeRef& node, NodePortType type) {
+        std::vector<NodePortConnectionRef> filteredConnections;
+        for (auto& kv : mOutputConnections[node]) {
+            NodePortRef port = node->getOutputPortForKey(kv.first);
+            if (port->getType() != type) {
+                continue;
+            }
+            std::vector<NodePortConnectionRef> connections = kv.second;
+            filteredConnections.insert(filteredConnections.end(), connections.begin(), connections.end());
+        }
+        return filteredConnections;
+    }
+    inline std::vector<NodePortConnectionRef> getOutputConnectionsForNodeWithPortKey(const NodeRef& node, const std::string& portKey) {
+        return mOutputConnections[node][portKey];
     }
 
     gl::Texture& evaluate(const NodeRef& node);

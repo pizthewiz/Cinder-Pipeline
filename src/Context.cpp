@@ -213,7 +213,7 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
                                 attachmentsStack.erase(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
 
                                 for (const std::string& key : imageInputPortKeys) {
-                                    NodePortConnectionRef connection = getConnectionForNodeWithInputPortKey(e, key);
+                                    NodePortConnectionRef connection = getInputConnectionForNodeWithPortKey(e, key);
                                     NodeRef inputNode = connection->getSourceNode();
                                     auto it = std::find_if(inputAttachments.begin(), inputAttachments.end(), [inputNode](std::tuple<int, NodeRef> t) {
                                         return std::get<1>(t) == inputNode;
