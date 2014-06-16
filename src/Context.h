@@ -62,7 +62,7 @@ public:
         return result;
     }
 
-    void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const std::string& destinationNodePortKey);
+    void connectNodes(const NodeRef& sourceNode, const std::string& sourceNodePortKey, const NodeRef& destinationNode, const std::string& destinationNodePortKey);
     void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode);
 
     inline NodePortConnectionRef getConnectionForNodeWithInputPortKey(const NodeRef& node, const std::string& portKey) {
@@ -74,7 +74,8 @@ public:
 private:
     Context();
 
-    void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
+    void connectNodes(const NodeRef& sourceNode, const NodePortRef& sourceNodePort, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
+
     BranchRef branchForNode(const NodeRef& node);
     std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
 

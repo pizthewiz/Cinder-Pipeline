@@ -63,7 +63,11 @@ private:
 
 class Node : public std::enable_shared_from_this<Node>, public boost::noncopyable {
 public:
-    Node() {}
+    Node() {
+        mOutputPorts = {
+            NodePort::create("image", NodePortType::FBOImage),
+        };
+    }
     virtual ~Node() {}
 
     virtual std::string getName() const = 0;
@@ -78,6 +82,8 @@ public:
         }
         return keys;
     }
+
+    inline std::vector<NodePortRef>& getOutputPorts() { return mOutputPorts; }
 
     inline std::vector<std::string> getInputPortKeysWithType(NodePortType type) {
         std::vector<std::string> filteredKeys;
@@ -95,8 +101,8 @@ public:
 
     NodePortRef getInputPortForKey(const std::string& key) {
         NodePortRef port = nullptr;
-        auto it = std::find_if(getInputPorts().begin(), getInputPorts().end(), [key](const NodePortRef& p){ return p->getKey() == key; });
-        if (it != getInputPorts().end()) {
+        auto it = std::find_if(mInputPorts.begin(), mInputPorts.end(), [key](const NodePortRef& p){ return p->getKey() == key; });
+        if (it != mInputPorts.end()) {
             port = *it;
         }
         return port;
@@ -116,6 +122,7 @@ public:
 
 protected:
     std::vector<NodePortRef> mInputPorts;
+    std::vector<NodePortRef> mOutputPorts;
     std::map<std::string, boost::any> mInputPortValueMap;
 };
 

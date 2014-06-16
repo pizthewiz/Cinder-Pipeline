@@ -106,18 +106,20 @@ void Context::setup(const Vec2i size, int attachments) {
 
 #pragma mark - CONNECTIONS
 
-void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const NodePortRef& destinationPort) {
-    NodePortConnectionRef connection = NodePortConnection::create(sourceNode, "image", destinationNode, destinationPort->getKey());
+void Context::connectNodes(const NodeRef& sourceNode, const NodePortRef& sourcePort, const NodeRef& destinationNode, const NodePortRef& destinationPort) {
+    NodePortConnectionRef connection = NodePortConnection::create(sourceNode, sourcePort->getKey(), destinationNode, destinationPort->getKey());
     mInputConnections[destinationNode][destinationPort->getKey()] = connection;
 }
 
-void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const std::string& destinationNodePortKey) {
+void Context::connectNodes(const NodeRef& sourceNode, const std::string& sourceNodePortKey, const NodeRef& destinationNode, const std::string& destinationNodePortKey) {
+//    NodePortRef sourcePort = sourceNode->getOutputPortForKey(sourceNodePortKey);
+    NodePortRef sourcePort = sourceNode->getOutputPorts().at(0);
     NodePortRef destinationPort = destinationNode->getInputPortForKey(destinationNodePortKey);
-    connectNodes(sourceNode, destinationNode, destinationPort);
+    connectNodes(sourceNode, sourcePort, destinationNode, destinationPort);
 }
 
 void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode) {
-    connectNodes(sourceNode, destinationNode, "image");
+    connectNodes(sourceNode, "image", destinationNode, "image");
 }
 
 #pragma mark -
