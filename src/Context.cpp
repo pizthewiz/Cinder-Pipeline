@@ -112,8 +112,7 @@ void Context::connectNodes(const NodeRef& sourceNode, const NodePortRef& sourceP
 }
 
 void Context::connectNodes(const NodeRef& sourceNode, const std::string& sourceNodePortKey, const NodeRef& destinationNode, const std::string& destinationNodePortKey) {
-//    NodePortRef sourcePort = sourceNode->getOutputPortForKey(sourceNodePortKey);
-    NodePortRef sourcePort = sourceNode->getOutputPorts().at(0);
+    NodePortRef sourcePort = sourceNode->getOutputPortForKey(sourceNodePortKey);
     NodePortRef destinationPort = destinationNode->getInputPortForKey(destinationNodePortKey);
     connectNodes(sourceNode, sourcePort, destinationNode, destinationPort);
 }
