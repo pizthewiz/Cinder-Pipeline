@@ -49,9 +49,9 @@ const std::string FragmentShaderBlur = R"(
     }
 )";
 
-BlurNodeRef BlurNode::create() {
-    return BlurNodeRef(new BlurNode());
-}
+//BlurNodeRef BlurNode::create() {
+//    return BlurNodeRef(new BlurNode());
+//}
 
 BlurNode::BlurNode() {
     std::vector<NodePortRef> inputPorts = {

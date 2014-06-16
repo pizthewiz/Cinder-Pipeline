@@ -1,12 +1,12 @@
 //
-//  Pipeline.cpp
+//  Context.cpp
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 19 Apr 2014.
 //  Copyright 2014 Chorded Constructions. All rights reserved.
 //
 
-#include "Pipeline.h"
+#include "Context.h"
 #include "SourceNode.h"
 #include "EffectorNode.h"
 #include "cinder/Utilities.h"
@@ -15,19 +15,19 @@ using namespace ci;
 
 namespace Cinder { namespace Pipeline {
 
-PipelineRef Pipeline::create() {
-    return PipelineRef(new Pipeline())->shared_from_this();
+ContextRef Context::create() {
+    return ContextRef(new Context())->shared_from_this();
 }
 
-Pipeline::Pipeline() {
+Context::Context() {
 }
 
-Pipeline::~Pipeline() {
+Context::~Context() {
 }
 
 #pragma mark -
 
-void Pipeline::setup(const Vec2i size, int attachments) {
+void Context::setup(const Vec2i size, int attachments) {
 #if defined(DEBUG)
     const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     cinder::app::console() << "GL_RENDERER: " << renderer << std::endl;
@@ -104,7 +104,25 @@ void Pipeline::setup(const Vec2i size, int attachments) {
     } mFBO.unbindFramebuffer();
 }
 
-gl::Texture& Pipeline::evaluate(const NodeRef& node) {
+#pragma mark - CONNECTIONS
+
+void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const NodePortRef& destinationPort) {
+    NodePortConnectionRef connection = NodePortConnection::create(sourceNode, "image", destinationNode, destinationPort->getKey());
+    mInputConnections[destinationNode][destinationPort->getKey()] = connection;
+}
+
+void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode, const std::string& destinationNodePortKey) {
+    NodePortRef destinationPort = destinationNode->getInputPortForKey(destinationNodePortKey);
+    connectNodes(sourceNode, destinationNode, destinationPort);
+}
+
+void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode) {
+    connectNodes(sourceNode, destinationNode, "image");
+}
+
+#pragma mark -
+
+gl::Texture& Context::evaluate(const NodeRef& node) {
     BranchRef root = branchForNode(node);
     std::deque<BranchRef> renderStack = renderStackForRootBranch(root);
 
@@ -185,7 +203,7 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
                                 attachmentsStack.erase(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
 
                                 for (const std::string& key : imageInputPortKeys) {
-                                    NodePortConnectionRef connection = e->getConnectionForInputPortKey(key);
+                                    NodePortConnectionRef connection = getConnectionForNodeWithInputPortKey(e, key);
                                     NodeRef inputNode = connection->getSourceNode();
                                     auto it = std::find_if(inputAttachments.begin(), inputAttachments.end(), [inputNode](std::tuple<int, NodeRef> t) {
                                         return std::get<1>(t) == inputNode;
@@ -223,9 +241,9 @@ gl::Texture& Pipeline::evaluate(const NodeRef& node) {
     return mFBO.getTexture(outAttachment);
 }
 
-#pragma mark - PRIVATE
+#pragma mark -
 
-BranchRef Pipeline::branchForNode(const NodeRef& node) {
+BranchRef Context::branchForNode(const NodeRef& node) {
     std::deque<NodeRef> nodes;
     BranchRef branch = Branch::create();
 
@@ -238,11 +256,11 @@ BranchRef Pipeline::branchForNode(const NodeRef& node) {
         } else {
             std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
             if (imageInputPortKeys.size() == 1) {
-                NodePortConnectionRef connection = n->getConnectionForInputPortKey(imageInputPortKeys.at(0));
+                NodePortConnectionRef connection = getConnectionForNodeWithInputPortKey(n, imageInputPortKeys.at(0));
                 n = connection->getSourceNode();
             } else if (imageInputPortKeys.size() > 1) {
                 for (const std::string& key : imageInputPortKeys) {
-                    NodePortConnectionRef connection = n->getConnectionForInputPortKey(key);
+                    NodePortConnectionRef connection = getConnectionForNodeWithInputPortKey(n, key);
                     BranchRef b = branchForNode(connection->getSourceNode());
                     branch->connectInputBranch(b);
                 }
@@ -256,7 +274,7 @@ BranchRef Pipeline::branchForNode(const NodeRef& node) {
     return branch;
 }
 
-std::deque<BranchRef> Pipeline::renderStackForRootBranch(const BranchRef& branch) {
+std::deque<BranchRef> Context::renderStackForRootBranch(const BranchRef& branch) {
     std::deque<BranchRef> renderStack;
     std::deque<BranchRef> branchStack;
 
