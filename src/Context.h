@@ -84,6 +84,7 @@ private:
     std::vector<NodeRef> mNodes;
     // {node -> {key -> connection}}
     std::map<NodeRef, std::map<std::string, NodePortConnectionRef>> mInputConnections;
+    std::map<NodeRef, std::map<std::string, std::vector<NodePortConnectionRef>>> mOutputConnections;
 };
 
 }}

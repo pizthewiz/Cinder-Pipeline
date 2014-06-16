@@ -107,8 +107,17 @@ void Context::setup(const Vec2i size, int attachments) {
 #pragma mark - CONNECTIONS
 
 void Context::connectNodes(const NodeRef& sourceNode, const NodePortRef& sourcePort, const NodeRef& destinationNode, const NodePortRef& destinationPort) {
+    // remove from output connections if destination port already connected
+    if (mInputConnections[destinationNode].count(destinationPort->getKey()) > 0) {
+        std::vector<NodePortConnectionRef> connections = mOutputConnections[sourceNode][sourcePort->getKey()];
+        connections.erase(std::remove_if(connections.begin(), connections.end(), [destinationNode](const NodePortConnectionRef& c) {
+            return c->getDestinationNode() == destinationNode;
+        }), connections.end());
+    }
+
     NodePortConnectionRef connection = NodePortConnection::create(sourceNode, sourcePort->getKey(), destinationNode, destinationPort->getKey());
     mInputConnections[destinationNode][destinationPort->getKey()] = connection;
+    mOutputConnections[sourceNode][sourcePort->getKey()].push_back(connection);
 }
 
 void Context::connectNodes(const NodeRef& sourceNode, const std::string& sourceNodePortKey, const NodeRef& destinationNode, const std::string& destinationNodePortKey) {
