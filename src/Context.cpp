@@ -282,11 +282,13 @@ BranchRef Context::branchForNode(const NodeRef& node) {
                     NodePortConnectionRef connection = connections.at(0);
                     n2 = connection->getSourceNode();
 
-                    if (getOutputConnectionsForNodeWithPortKey(n2, connection->getSourcePortKey()).size() > 1) {
+                    // branch on multiple outputs
+                    if (getOutputConnectionsForNodeWithPortType(n2, NodePortType::FBOImage).size() > 1) {
                         nodeStack.push_front(n2);
                         n2 = nullptr;
                     }
                 } else if (connections.size() > 1) {
+                    // branch on multiple inputs
                     for (const NodePortConnectionRef& c : connections) {
                         nodeStack.push_front(c->getSourceNode());
                     }
