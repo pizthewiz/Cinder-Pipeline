@@ -348,7 +348,7 @@ std::deque<BranchRef> Context::renderStackForRootBranch(const BranchRef& branch)
             // sort by cost DESC
             std::vector<BranchConnectionRef> sortedInputConnections = inputConnections;
             std::sort(sortedInputConnections.begin(), sortedInputConnections.end(), [](const BranchConnectionRef& c1, const BranchConnectionRef& c2) {
-                return c1->getCost() > c2->getCost();
+                return c1->getInputCost() > c2->getInputCost();
             });
 
             // follow cheapest path

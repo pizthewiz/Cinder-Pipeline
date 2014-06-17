@@ -17,8 +17,8 @@ typedef std::shared_ptr<class BranchConnection> BranchConnectionRef;
 
 class BranchConnection : public std::enable_shared_from_this<BranchConnection> {
 public:
-    static BranchConnectionRef create(const BranchRef& source, const BranchRef& destination, unsigned int cost = 0) {
-        return BranchConnectionRef(new BranchConnection(source, destination, cost))->shared_from_this();
+    static BranchConnectionRef create(const BranchRef& source, const BranchRef& destination, unsigned int inputCost = 0) {
+        return BranchConnectionRef(new BranchConnection(source, destination, inputCost))->shared_from_this();
     }
 
     ~BranchConnection() {}
@@ -29,16 +29,16 @@ public:
     inline BranchRef& getDestinationBranch() {
         return mDestinationBranch;
     }
-    inline unsigned int getCost() const {
-        return mCost;
+    inline unsigned int getInputCost() const {
+        return mInputCost;
     }
 
 private:
-    BranchConnection(const BranchRef& source, const BranchRef& destination, unsigned int cost) : mSourceBranch(source), mDestinationBranch(destination), mCost(cost) {}
+    BranchConnection(const BranchRef& source, const BranchRef& destination, unsigned int inputCost) : mSourceBranch(source), mDestinationBranch(destination), mInputCost(inputCost) {}
 
     BranchRef mSourceBranch;
     BranchRef mDestinationBranch;
-    unsigned int mCost;
+    unsigned int mInputCost;
 };
 
 class Branch : public std::enable_shared_from_this<Branch> {
@@ -62,9 +62,9 @@ public:
 
     void updateMaxInputCost() {
         auto result = std::max_element(mInputConnections.begin(), mInputConnections.end(), [](const BranchConnectionRef& c1, const BranchConnectionRef& c2) {
-            return c1->getCost() < c2->getCost();
+            return c1->getInputCost() < c2->getInputCost();
         });
-        unsigned int cost = mInputConnections.at(std::distance(mInputConnections.begin(), result))->getCost();
+        unsigned int cost = mInputConnections.at(std::distance(mInputConnections.begin(), result))->getInputCost();
         setMaxInputCost(cost + (unsigned int)mInputConnections.size());
 
         for (auto& c : mOutputConnections) {
