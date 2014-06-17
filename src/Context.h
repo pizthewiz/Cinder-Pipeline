@@ -114,10 +114,10 @@ private:
     std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
 
     gl::Fbo mFBO;
-
     std::vector<NodeRef> mNodes;
     // {node -> {key -> connection}}
     std::map<NodeRef, std::map<std::string, NodePortConnectionRef>> mInputConnections;
+    // {node -> {key -> [connection, ]}}
     std::map<NodeRef, std::map<std::string, std::vector<NodePortConnectionRef>>> mOutputConnections;
 };
 

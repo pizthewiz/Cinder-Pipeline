@@ -159,7 +159,7 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
             for (unsigned int idx = 0; idx < mFBO.getFormat().getNumColorBuffers(); idx++) {
                 availableAttachments.push_back(idx);
             }
-            std::deque<std::tuple<int, NodeRef>> attachmentsStack;
+            std::map<NodeRef, int> attachmentsMap;
 
             for (const BranchRef& b : renderStack) {
                 size_t attachmentIndex = 0;
@@ -181,15 +181,13 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
                         EffectorNodeRef e = std::dynamic_pointer_cast<EffectorNode>(n);
                         if (e) {
                             std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
-                            size_t numberOfImageInputPorts = imageInputPortKeys.size();
-                            if (numberOfImageInputPorts == 1) {
+                            if (imageInputPortKeys.size() == 1) {
+                                // grab attachment from map when appropriate
                                 if (inAttachment == -1) {
-                                    // grab off the stack
-                                    std::tuple<int, NodeRef> t = attachmentsStack.front();
-                                    inAttachment = std::get<0>(t);
-                                    attachmentsStack.pop_front();
+                                    NodePortConnectionRef c = getInputConnectionForNodeWithPortKey(n, imageInputPortKeys.at(0));
+                                    inAttachment = attachmentsMap[c->getSourceNode()];
+                                    attachmentsMap.erase(c->getSourceNode());
                                     availableAttachments.push_back(inAttachment);
-
                                 }
                                 FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
                                 e->setValueForInputPortKey(inputFBOImage, imageInputPortKeys.at(0));
@@ -202,24 +200,15 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
                                 e->render(outputFBOImage);
 
                                 inAttachment = outAttachment;
-                            } else if (numberOfImageInputPorts > 1) {
-                                std::vector<std::tuple<int, NodeRef>> inputAttachments(numberOfImageInputPorts);
-                                inputAttachments.assign(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
-                                attachmentsStack.erase(attachmentsStack.begin(), attachmentsStack.begin() + numberOfImageInputPorts);
-
+                            } else if (imageInputPortKeys.size() > 1) {
                                 for (const std::string& key : imageInputPortKeys) {
-                                    NodePortConnectionRef connection = getInputConnectionForNodeWithPortKey(e, key);
-                                    NodeRef inputNode = connection->getSourceNode();
-                                    auto it = std::find_if(inputAttachments.begin(), inputAttachments.end(), [inputNode](std::tuple<int, NodeRef> t) {
-                                        return std::get<1>(t) == inputNode;
-                                    });
-                                    inAttachment = std::get<0>(*it);
-                                    inputAttachments.erase(it);
+                                    NodePortConnectionRef c = getInputConnectionForNodeWithPortKey(e, key);
+                                    inAttachment = attachmentsMap[c->getSourceNode()];
+                                    attachmentsMap.erase(c->getSourceNode());
+                                    availableAttachments.push_back(inAttachment);
 
                                     FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
                                     e->setValueForInputPortKey(inputFBOImage, key);
-
-                                    availableAttachments.push_back(inAttachment);
                                 }
 
                                 glDrawBuffer(GL_COLOR_ATTACHMENT0 + outAttachment);
@@ -234,8 +223,7 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
 
                     // stash output attachment and accompanying node when branch concludes
                     if (nodeIdx == b->getNodes().size() - 1) {
-                        // TODO - could also be a std::map<NodeRef, int> attachmentsMap;
-                        attachmentsStack.push_front(std::make_tuple(outAttachment, n));
+                        attachmentsMap[n] = outAttachment;
                         availableAttachments.erase(std::find(availableAttachments.begin(), availableAttachments.end(), outAttachment));
                     }
                 }
