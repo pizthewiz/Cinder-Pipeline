@@ -138,22 +138,9 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
 
 #if defined(DEBUG)
     // ASCII visualization
-    cinder::app::console() << std::string(13, '#') << std::endl;
+    cinder::app::console() << std::string(3, '#') << std::endl;
     for (const BranchRef& b : renderStack) {
-        unsigned int spaceCount = b->getMaxInputCost() * 5 + MAX((int)b->getMaxInputCost() - 1, 0) * 3;
-        cinder::app::console() << std::string(spaceCount, ' ');
-
-        for (const NodeRef& n : b->getNodes()) {
-            if (!std::dynamic_pointer_cast<SourceNode>(n)) {
-                cinder::app::console() << " → ";
-            }
-
-            std::string name = n->getName();
-            name.resize(3, ' ');
-            cinder::app::console() << "[" << name << "]";
-        }
-        cinder::app::console() << " (" << b->getMaxInputCost() << ")";
-        cinder::app::console() << std::endl;
+        printBranch(b);
     }
     cinder::app::console() << std::endl;
 #endif
@@ -196,6 +183,14 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
                             std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
                             size_t numberOfImageInputPorts = imageInputPortKeys.size();
                             if (numberOfImageInputPorts == 1) {
+                                if (inAttachment == -1) {
+                                    // grab off the stack
+                                    std::tuple<int, NodeRef> t = attachmentsStack.front();
+                                    inAttachment = std::get<0>(t);
+                                    attachmentsStack.pop_front();
+                                    availableAttachments.push_back(inAttachment);
+
+                                }
                                 FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
                                 e->setValueForInputPortKey(inputFBOImage, imageInputPortKeys.at(0));
 
@@ -239,6 +234,7 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
 
                     // stash output attachment and accompanying node when branch concludes
                     if (nodeIdx == b->getNodes().size() - 1) {
+                        // TODO - could also be a std::map<NodeRef, int> attachmentsMap;
                         attachmentsStack.push_front(std::make_tuple(outAttachment, n));
                         availableAttachments.erase(std::find(availableAttachments.begin(), availableAttachments.end(), outAttachment));
                     }
@@ -253,35 +249,86 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
 
 #pragma mark -
 
-BranchRef Context::branchForNode(const NodeRef& node) {
-    std::deque<NodeRef> nodes;
-    BranchRef branch = Branch::create();
+void Context::printBranch(const BranchRef& branch) {
+//    for (const NodeRef& n : branch->getNodes()) {
+//        cinder::app::console() << n->getName() << " → ";
+//    }
+//    cinder::app::console() << " (" << branch->getMaxInputCost() << ")" << std::endl;
+    for (const NodeRef& n : branch->getNodes()) {
+        if (!std::dynamic_pointer_cast<SourceNode>(n)) {
+            cinder::app::console() << " → ";
+        }
 
+        std::string name = n->getName();
+        name.resize(3, ' ');
+        cinder::app::console() << "[" << name << "]";
+    }
+    cinder::app::console() << " (" << branch->getMaxInputCost() << ")";
+    cinder::app::console() << std::endl;
+}
+
+BranchRef Context::branchForNode(const NodeRef& node) {
+    std::map<NodeRef, BranchRef> branchMap;
+    std::deque<NodeRef> nodeStack;
+
+    // create branches
     NodeRef n = node;
     while (n) {
-        nodes.push_front(n);
+        if (branchMap.count(n) == 0) {
+            std::deque<NodeRef> nodes;
 
-        if (std::dynamic_pointer_cast<SourceNode>(n)) {
+            NodeRef n2 = n;
+            while (n2) {
+                nodes.push_front(n2);
+
+                // TODO - use getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage)
+                std::vector<std::string> imageInputPortKeys = n2->getImageInputPortKeys();
+                if (imageInputPortKeys.size() == 0) {
+                    n2 = nullptr;
+                } else if (imageInputPortKeys.size() == 1) {
+                    NodePortConnectionRef connection = getInputConnectionForNodeWithPortKey(n2, imageInputPortKeys.front());
+                    n2 = connection->getSourceNode();
+
+                    if (getOutputConnectionsForNodeWithPortKey(n2, connection->getSourcePortKey()).size() > 1) {
+                        nodeStack.push_front(n2);
+                        n2 = nullptr;
+                    }
+                } else if (imageInputPortKeys.size() > 1) {
+                    for (const std::string& key : imageInputPortKeys) {
+                        NodePortConnectionRef connection = getInputConnectionForNodeWithPortKey(n2, key);
+                        nodeStack.push_front(connection->getSourceNode());
+                    }
+                    n2 = nullptr;
+                }
+            }
+
+            BranchRef branch = Branch::create();
+            branch->setNodes(nodes);
+            branchMap[n] = branch;
+        }
+
+        if (nodeStack.empty()) {
             n = nullptr;
         } else {
-            std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
-            if (imageInputPortKeys.size() == 1) {
-                NodePortConnectionRef connection = getConnectionForNodeWithInputPortKey(n, imageInputPortKeys.at(0));
-                n = connection->getSourceNode();
-            } else if (imageInputPortKeys.size() > 1) {
-                for (const std::string& key : imageInputPortKeys) {
-                    NodePortConnectionRef connection = getConnectionForNodeWithInputPortKey(n, key);
-                    BranchRef b = branchForNode(connection->getSourceNode());
-                    branch->connectInputBranch(b);
-                }
-
-                n = nullptr;
-            }
+            n = nodeStack.front();
+            nodeStack.pop_front();
         }
     }
-    branch->setNodes(nodes);
 
-    return branch;
+    // connect branches
+    for (auto& kv : branchMap) {
+        BranchRef destinationBranch = kv.second;
+        n = destinationBranch->getNodes().front();
+        // TODO - use getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage)
+        std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
+        for (const std::string& key : imageInputPortKeys) {
+            NodePortConnectionRef c = getInputConnectionForNodeWithPortKey(n, key);
+            BranchRef sourceBranch = branchMap[c->getSourceNode()];
+            destinationBranch->connectInputBranch(sourceBranch);
+        }
+    }
+
+    return branchMap[node];
 }
 
 std::deque<BranchRef> Context::renderStackForRootBranch(const BranchRef& branch) {
@@ -292,7 +339,8 @@ std::deque<BranchRef> Context::renderStackForRootBranch(const BranchRef& branch)
     while (b) {
         renderStack.push_front(b);
 
-        if (b->getInputConnections().empty()) {
+        std::vector<BranchConnectionRef> inputConnections = b->getInputConnections();
+        if (inputConnections.empty()) {
             if (branchStack.empty()) {
                 b = nullptr;
             } else {
@@ -301,7 +349,7 @@ std::deque<BranchRef> Context::renderStackForRootBranch(const BranchRef& branch)
             }
         } else {
             // sort by cost DESC
-            std::vector<BranchConnectionRef> sortedInputConnections = b->getInputConnections();
+            std::vector<BranchConnectionRef> sortedInputConnections = inputConnections;
             std::sort(sortedInputConnections.begin(), sortedInputConnections.end(), [](const BranchConnectionRef& c1, const BranchConnectionRef& c2) {
                 return c1->getCost() > c2->getCost();
             });

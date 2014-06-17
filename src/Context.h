@@ -108,6 +108,8 @@ private:
 
     void connectNodes(const NodeRef& sourceNode, const NodePortRef& sourceNodePort, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
 
+    void printBranch(const BranchRef& branch);
+
     BranchRef branchForNode(const NodeRef& node);
     std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
 
