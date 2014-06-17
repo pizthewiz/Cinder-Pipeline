@@ -281,22 +281,20 @@ BranchRef Context::branchForNode(const NodeRef& node) {
             while (n2) {
                 nodes.push_front(n2);
 
-                // TODO - use getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage)
-                std::vector<std::string> imageInputPortKeys = n2->getImageInputPortKeys();
-                if (imageInputPortKeys.size() == 0) {
+                std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n2, NodePortType::FBOImage);
+                if (connections.size() == 0) {
                     n2 = nullptr;
-                } else if (imageInputPortKeys.size() == 1) {
-                    NodePortConnectionRef connection = getInputConnectionForNodeWithPortKey(n2, imageInputPortKeys.front());
+                } else if (connections.size() == 1) {
+                    NodePortConnectionRef connection = connections.at(0);
                     n2 = connection->getSourceNode();
 
                     if (getOutputConnectionsForNodeWithPortKey(n2, connection->getSourcePortKey()).size() > 1) {
                         nodeStack.push_front(n2);
                         n2 = nullptr;
                     }
-                } else if (imageInputPortKeys.size() > 1) {
-                    for (const std::string& key : imageInputPortKeys) {
-                        NodePortConnectionRef connection = getInputConnectionForNodeWithPortKey(n2, key);
-                        nodeStack.push_front(connection->getSourceNode());
+                } else if (connections.size() > 1) {
+                    for (const NodePortConnectionRef& c : connections) {
+                        nodeStack.push_front(c->getSourceNode());
                     }
                     n2 = nullptr;
                 }
@@ -319,10 +317,9 @@ BranchRef Context::branchForNode(const NodeRef& node) {
     for (auto& kv : branchMap) {
         BranchRef destinationBranch = kv.second;
         n = destinationBranch->getNodes().front();
-        // TODO - use getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage)
-        std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
-        for (const std::string& key : imageInputPortKeys) {
-            NodePortConnectionRef c = getInputConnectionForNodeWithPortKey(n, key);
+
+        std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
+        for (const NodePortConnectionRef& c : connections) {
             BranchRef sourceBranch = branchMap[c->getSourceNode()];
             destinationBranch->connectInputBranch(sourceBranch);
         }
