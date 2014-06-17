@@ -52,12 +52,7 @@ public:
     void connectInputBranch(const BranchRef& branch) {
         BranchConnectionRef connection = BranchConnection::create(branch, shared_from_this(), branch->getMaxInputCost());
         mInputConnections.push_back(connection);
-
-        auto result = std::max_element(mInputConnections.begin(), mInputConnections.end(), [](const BranchConnectionRef& c1, const BranchConnectionRef& c2) {
-            return c1->getCost() < c2->getCost();
-        });
-        unsigned int cost = mInputConnections.at(std::distance(mInputConnections.begin(), result))->getCost();
-        setMaxInputCost(cost + (unsigned int)mInputConnections.size());
+        updateMaxInputCost();
 
         branch->addOutputConnection(connection);
     }
@@ -65,6 +60,17 @@ public:
     std::vector<BranchConnectionRef>& getInputConnections() { return mInputConnections; }
     std::vector<BranchConnectionRef>& getOutputConnections() { return mOutputConnections; }
 
+    void updateMaxInputCost() {
+        auto result = std::max_element(mInputConnections.begin(), mInputConnections.end(), [](const BranchConnectionRef& c1, const BranchConnectionRef& c2) {
+            return c1->getCost() < c2->getCost();
+        });
+        unsigned int cost = mInputConnections.at(std::distance(mInputConnections.begin(), result))->getCost();
+        setMaxInputCost(cost + (unsigned int)mInputConnections.size());
+
+        for (auto& c : mOutputConnections) {
+            c->getDestinationBranch()->updateMaxInputCost();
+        }
+    }
     void setMaxInputCost(unsigned int cost) { mMaxInputCost = cost; }
     unsigned int getMaxInputCost() const { return mMaxInputCost; }
 
