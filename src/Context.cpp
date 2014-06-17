@@ -287,8 +287,7 @@ BranchRef Context::branchForNode(const NodeRef& node) {
                 }
             }
 
-            BranchRef branch = Branch::create();
-            branch->setNodes(nodes);
+            BranchRef branch = Branch::create(nodes);
             branchMap[n] = branch;
         }
 

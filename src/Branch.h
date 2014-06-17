@@ -43,10 +43,9 @@ private:
 
 class Branch : public std::enable_shared_from_this<Branch> {
 public:
-    static BranchRef create() { return BranchRef(new Branch())->shared_from_this(); }
+    static BranchRef create(const std::deque<NodeRef> nodes) { return BranchRef(new Branch(nodes))->shared_from_this(); }
     ~Branch() {}
 
-    void setNodes(std::deque<NodeRef>& nodes) { mNodes = nodes; }
     const std::deque<NodeRef>& getNodes() const { return mNodes; }
 
     void connectInputBranch(const BranchRef& branch) {
@@ -71,13 +70,13 @@ public:
             c->getDestinationBranch()->updateMaxInputCost();
         }
     }
-    void setMaxInputCost(unsigned int cost) { mMaxInputCost = cost; }
     unsigned int getMaxInputCost() const { return mMaxInputCost; }
 
 private:
-    Branch() : mMaxInputCost(0) {}
+    Branch(const std::deque<NodeRef> nodes) : mNodes(nodes), mMaxInputCost(0) {}
 
     void addOutputConnection(const BranchConnectionRef& connection) { mOutputConnections.push_back(connection); }
+    void setMaxInputCost(unsigned int cost) { mMaxInputCost = cost; }
 
     std::deque<NodeRef> mNodes;
     std::vector<BranchConnectionRef> mInputConnections;
