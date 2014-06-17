@@ -180,17 +180,17 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
                     } else {
                         EffectorNodeRef e = std::dynamic_pointer_cast<EffectorNode>(n);
                         if (e) {
-                            std::vector<std::string> imageInputPortKeys = n->getImageInputPortKeys();
-                            if (imageInputPortKeys.size() == 1) {
+                            std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
+                            if (connections.size() == 1) {
+                                NodePortConnectionRef c = connections.at(0);
                                 // grab attachment from map when appropriate
                                 if (inAttachment == -1) {
-                                    NodePortConnectionRef c = getInputConnectionForNodeWithPortKey(n, imageInputPortKeys.at(0));
                                     inAttachment = attachmentsMap[c->getSourceNode()];
                                     attachmentsMap.erase(c->getSourceNode());
                                     availableAttachments.push_back(inAttachment);
                                 }
                                 FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
-                                e->setValueForInputPortKey(inputFBOImage, imageInputPortKeys.at(0));
+                                e->setValueForInputPortKey(inputFBOImage, c->getDestinationPortKey());
 
                                 attachmentIndex = (attachmentIndex + 1) % availableAttachments.size();
                                 outAttachment = availableAttachments.at(attachmentIndex);
@@ -200,15 +200,14 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
                                 e->render(outputFBOImage);
 
                                 inAttachment = outAttachment;
-                            } else if (imageInputPortKeys.size() > 1) {
-                                for (const std::string& key : imageInputPortKeys) {
-                                    NodePortConnectionRef c = getInputConnectionForNodeWithPortKey(e, key);
+                            } else if (connections.size() > 1) {
+                                for (const NodePortConnectionRef& c : connections) {
                                     inAttachment = attachmentsMap[c->getSourceNode()];
                                     attachmentsMap.erase(c->getSourceNode());
                                     availableAttachments.push_back(inAttachment);
 
                                     FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
-                                    e->setValueForInputPortKey(inputFBOImage, key);
+                                    e->setValueForInputPortKey(inputFBOImage, c->getDestinationPortKey());
                                 }
 
                                 glDrawBuffer(GL_COLOR_ATTACHMENT0 + outAttachment);
