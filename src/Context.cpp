@@ -118,6 +118,9 @@ void Context::connectNodes(const NodeRef& sourceNode, const NodePortRef& sourceP
     NodePortConnectionRef connection = NodePortConnection::create(sourceNode, sourcePort->getKey(), destinationNode, destinationPort->getKey());
     mInputConnections[destinationNode][destinationPort->getKey()] = connection;
     mOutputConnections[sourceNode][sourcePort->getKey()].push_back(connection);
+
+    // wipe render stack to force a rebuild
+    mRenderStack.clear();
 }
 
 void Context::connectNodes(const NodeRef& sourceNode, const std::string& sourceNodePortKey, const NodeRef& destinationNode, const std::string& destinationNodePortKey) {
@@ -133,13 +136,17 @@ void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destination
 #pragma mark -
 
 gl::Texture& Context::evaluate(const NodeRef& node) {
-    BranchRef root = branchForNode(node);
-    std::deque<BranchRef> renderStack = renderStackForRootBranch(root);
+    // rebuild render stack (flush cache) if the stack is empty or the node changes (cache key)
+    if (mRenderStack.size() == 0 || node != mRenderNode) {
+        mRenderNode = node;
+        BranchRef root = branchForNode(mRenderNode);
+        mRenderStack = renderStackForRootBranch(root);
+    }
 
 #if defined(DEBUG)
     // ASCII visualization
     cinder::app::console() << std::string(3, '#') << std::endl;
-    for (const BranchRef& b : renderStack) {
+    for (const BranchRef& b : mRenderStack) {
         printBranch(b);
     }
     cinder::app::console() << std::endl;
@@ -161,7 +168,7 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
             }
             std::map<NodeRef, int> attachmentsMap;
 
-            for (const BranchRef& b : renderStack) {
+            for (const BranchRef& b : mRenderStack) {
                 size_t attachmentIndex = 0;
                 outAttachment = availableAttachments.at(attachmentIndex);
                 int inAttachment = -1;

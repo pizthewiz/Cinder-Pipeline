@@ -119,6 +119,10 @@ private:
     std::map<NodeRef, std::map<std::string, NodePortConnectionRef>> mInputConnections;
     // {node -> {key -> [connection, ]}}
     std::map<NodeRef, std::map<std::string, std::vector<NodePortConnectionRef>>> mOutputConnections;
+
+    // cache
+    NodeRef mRenderNode;
+    std::deque<BranchRef> mRenderStack;
 };
 
 }}
