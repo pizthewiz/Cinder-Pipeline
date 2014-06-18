@@ -16,14 +16,10 @@ typedef std::shared_ptr<class BlurNode> BlurNodeRef;
 
 class BlurNode : public EffectorNode {
 public:
-//    static BlurNodeRef create();
     BlurNode();
     ~BlurNode();
 
     virtual std::string getName() const { return "Blur"; }
 
     void render(const FBOImageRef& outputFBOImage);
-
-//private:
-//    BlurNode();
 };
