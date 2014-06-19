@@ -30,8 +30,6 @@ public:
         gl::TextureRef texture = getValueForInputPortKey<gl::TextureRef>("texture");
         gl::draw(texture);
     }
-    
-protected:
 };
 
 }}
