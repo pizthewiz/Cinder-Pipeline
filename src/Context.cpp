@@ -148,14 +148,14 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
         mRenderStack = renderStackForRootBranch(root);
     }
 
-#if defined(DEBUG)
-    // ASCII visualization
-    cinder::app::console() << std::string(3, '#') << std::endl;
-    for (const BranchRef& b : mRenderStack) {
-        printBranch(b);
-    }
-    cinder::app::console() << std::endl;
-#endif
+//#if defined(DEBUG)
+//    // ASCII visualization
+//    cinder::app::console() << std::string(3, '#') << std::endl;
+//    for (const BranchRef& b : mRenderStack) {
+//        printBranch(b);
+//    }
+//    cinder::app::console() << std::endl;
+//#endif
 
     // render branches
     unsigned int outAttachment = 0;
