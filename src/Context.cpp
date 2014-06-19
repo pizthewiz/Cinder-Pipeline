@@ -28,6 +28,11 @@ Context::~Context() {
 #pragma mark -
 
 void Context::setup(const Vec2i size, int attachments) {
+    // bail if size and attachments are unchanged
+    if (mFBO && size == mFBO.getSize() && attachments == mFBO.getFormat().getNumColorBuffers()) {
+        return;
+    }
+
 #if defined(DEBUG)
     const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
     cinder::app::console() << "GL_RENDERER: " << renderer << std::endl;
