@@ -58,7 +58,7 @@ BlurNode::BlurNode() {
         NodePort::create("amount", NodePortType::Float),
     };
     setInputPorts(inputPorts);
-    // NB - output port "image" of type NodePortType::FBOImage is implicit
+    // NB - output port "image" of type NodePortType::FBOImage is already present
 
     setupShader(sVertexShaderPassThrough, FragmentShaderBlur);
 }
