@@ -8,7 +8,7 @@ enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f};
 ```
 Although multiple data types are supported, being an imaging pipeline, dependencies are only calculated on `NodePortType::FBOImage` ports. Supporting that, all `Node` instances have a fixed single output port `"image"` of type `NodePortType::FBOImage`.
 
-Currently there are two derived node classes, `SourceNode` and `EffectorNode`. `SourceNode` is intended to be used directly and has a port `"texture"` of type `NodePortType::Texture` (internally `gl::TextureRef`) that is simply intended to bring textures into the pipeline. `EffectorNode` is intended to act as a base class for shader-based operators and the input ports can vary based on the specific need.
+Currently there are two derived node classes, `SourceNode` and `EffectorNode`. `SourceNode` is intended to be used directly and has a port `"texture"` of type `NodePortType::Texture` (internally `gl::TextureRef`) that will bring textures into the pipeline. `EffectorNode` is intended to act as a base class for shader-based operators and the input ports can vary based on the specific need.
 
 ### USAGE
 ```C++
@@ -26,6 +26,6 @@ At present, there is little if any error checking on missing or cyclic input con
 
 ### GREETZ
 - Heavily inspired by Rich Eakin's [Cinder-Audio2](https://forum.libcinder.org/topic/rfc-cinder-audio2-available-for-alpha-testing)
+- [Shake](http://en.wikipedia.org/wiki/Shake_(software)) and [Quartz Composer](http://en.wikipedia.org/wiki/Quartz_Composer)
 - Neil Mendoza for [ofxPostProcessing](https://github.com/neilmendoza/ofxPostProcessing)
 - Patricio Gonzalezvivo for [ofxFX](https://github.com/patriciogonzalezvivo/ofxFX)
-- [Shake](http://en.wikipedia.org/wiki/Shake_(software)) and [Quartz Composer](http://en.wikipedia.org/wiki/Quartz_Composer)
