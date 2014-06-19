@@ -18,8 +18,9 @@ typedef std::shared_ptr<class SourceNode> SourceNodeRef;
 
 class SourceNode : public Node {
 public:
-    static SourceNodeRef create() {
-        return SourceNodeRef(new SourceNode());
+    SourceNode() {
+        std::vector<NodePortRef> inputPorts = {NodePort::create("texture", NodePortType::Texture)};
+        setInputPorts(inputPorts);
     }
     virtual ~SourceNode() {}
 
@@ -31,10 +32,6 @@ public:
     }
     
 protected:
-    SourceNode() {
-        std::vector<NodePortRef> inputPorts = {NodePort::create("texture", NodePortType::Texture)};
-        setInputPorts(inputPorts);
-    }
 };
 
 }}
