@@ -26,7 +26,7 @@ sourceNode->setValueForInputPortKey(texture, "texture");
 // create horizontal blur, set size and connect to source
 BlurNodeRef blurNodeHorizontal = mContext->makeNode(new BlurNode);
 blurNodeHorizontal->setValueForInputPortKey(Vec2f(1.0f/texture->getWidth(), 0.0f), "pixelSize");
-mContext->connectNodes(texture, blurNodeHorizontal);
+mContext->connectNodes(sourceNode, blurNodeHorizontal);
 
 // create vertical blur, set size and connect to horizontal
 BlurNodeRef blurNodeVertical = mContext->makeNode(new BlurNode);
