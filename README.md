@@ -12,9 +12,28 @@ Currently there are two derived node classes, `SourceNode` and `EffectorNode`. `
 
 ### USAGE
 ```C++
-// TODO - construct
-// TODO - connect
-// TODO - evaluate
+mContext = Context::create();
+
+// setup context internals (FBO) at source texture size
+gl::TextureRef sourceTexture = gl::Texture::create(loadImage(loadAsset(RES_LENNA_IMAGE)));
+mContext->setup(sourceTexture->getSize());
+
+// create source
+SourceNodeRef sourceNode = mContext->makeNode(new SourceNode);
+sourceNode->setValueForInputPortKey(sourceTexture, "texture");
+
+// create horizontal blur, set size and connect to source
+BlurNodeRef blurNodeHorizontal = mContext->makeNode(new BlurNode);
+blurNodeHorizontal->setValueForInputPortKey(Vec2f(1.0f/sourceTexture->getWidth(), 0.0f), "pixelSize");
+mContext->connectNodes(sourceTexture, blurNodeHorizontal);
+
+// create vertical blur, set size and connect to horizontal
+BlurNodeRef blurNodeVertical = mContext->makeNode(new BlurNode);
+blurNodeVertical->setValueForInputPortKey(Vec2f(0.0f, 1.0f/sourceTexture->getHeight()), "pixelSize");
+mContext->connectNodes(blurNodeHorizontal, blurNodeVertical);
+
+// evaluate
+mTexture = mContext->evaluate(blurNodeVertical);
 ```
 
 ```C++
