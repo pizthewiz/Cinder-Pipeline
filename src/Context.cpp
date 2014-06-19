@@ -155,6 +155,8 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
     // render branches
     unsigned int outAttachment = 0;
 
+    gl::color(Color::white());
+
     Area viewport = gl::getViewport();
     gl::setViewport(mFBO.getBounds());
     mFBO.bindFramebuffer(); {
