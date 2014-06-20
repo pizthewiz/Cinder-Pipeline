@@ -18,5 +18,4 @@
 
 ### GENERAL
 - include a sample application
-- check that a node setting could be animated via Timeline
 - add some profiling, either [sansumbrella's Pockets](https://github.com/sansumbrella/Pockets/blob/dev/src/pockets/Profiling.h) or a simple cinder::Timer.
