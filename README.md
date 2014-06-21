@@ -17,7 +17,7 @@ gl::TextureRef texture = gl::Texture::create(loadImage(loadAsset(RES_LENNA_IMAGE
 
 // setup context internals (FBO) at source texture size
 mContext = Context::create();
-mContext->setup(texture->getSize());
+mContext->setup(texture->getSize(), 2);
 
 // create source
 SourceNodeRef sourceNode = mContext->makeNode(new SourceNode);
