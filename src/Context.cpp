@@ -104,8 +104,10 @@ void Context::setup(const Vec2i size, int attachments) {
             buffers[idx] = GL_COLOR_ATTACHMENT0 + idx;
         }
         glDrawBuffers(attachments, buffers);
+        Area viewport = gl::getViewport();
         gl::setViewport(mFBO.getBounds());
         gl::clear();
+        gl::setViewport(viewport);
     } mFBO.unbindFramebuffer();
 }
 
