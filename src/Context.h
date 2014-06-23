@@ -117,7 +117,7 @@ private:
     std::vector<NodeRef> mNodes;
     // {node -> {key -> connection}}
     std::map<NodeRef, std::map<std::string, NodePortConnectionRef>> mInputConnections;
-    // {node -> {key -> [connection, ]}}
+    // {node -> {key -> [connection, ...]}}
     std::map<NodeRef, std::map<std::string, std::vector<NodePortConnectionRef>>> mOutputConnections;
 
     // cache

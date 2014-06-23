@@ -145,19 +145,29 @@ void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destination
 gl::Texture& Context::evaluate(const NodeRef& node) {
     // rebuild render stack (flush cache) if the stack is empty or the node changes (cache key)
     if (mRenderStack.size() == 0 || node != mRenderNode) {
+        // verify there are enough attachments
+        auto result = std::max_element(mNodes.begin(), mNodes.end(), [](const NodeRef& n1, const NodeRef& n2) {
+            return n1->getImageInputPortKeys().size() < n2->getImageInputPortKeys().size();
+        });
+        unsigned int count = mNodes.at(std::distance(mNodes.begin(), result))->getImageInputPortKeys().size();
+        if (mFBO.getFormat().getNumColorBuffers() < count + 1) {
+            // TODO - something
+            cinder::app::console() << "ERROR - more attachments (color buffers) required" << std::endl;
+        }
+
         mRenderNode = node;
         BranchRef root = branchForNode(mRenderNode);
         mRenderStack = renderStackForRootBranch(root);
-    }
 
-//#if defined(DEBUG)
-//    // ASCII visualization
-//    cinder::app::console() << std::string(3, '#') << std::endl;
-//    for (const BranchRef& b : mRenderStack) {
-//        printBranch(b);
-//    }
-//    cinder::app::console() << std::endl;
-//#endif
+#if defined(DEBUG)
+        // ASCII visualization
+        cinder::app::console() << std::string(3, '#') << std::endl;
+        for (const BranchRef& b : mRenderStack) {
+            printBranch(b);
+        }
+        cinder::app::console() << std::endl;
+#endif
+    }
 
     // render branches
     unsigned int outAttachment = 0;
