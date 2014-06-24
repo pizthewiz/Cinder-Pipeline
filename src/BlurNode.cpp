@@ -69,8 +69,7 @@ BlurNode::~BlurNode() {
 void BlurNode::render(const FBOImageRef& outputFBOImage) {
     FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>("image");
     Vec2f pixelSize = getValueForInputPortKey<Vec2f>("pixelSize");
-    // NB - temporary workaround for missing default value support
-    float amount = hasValueForInputPortKey("amount") ? getValueForInputPortKey<float>("amount") : 1.0f;
+    float amount = getValueForInputPortKey<float>("amount");
 
     inputFBOImage->bindTexture(0); {
         mShader->bind(); {
