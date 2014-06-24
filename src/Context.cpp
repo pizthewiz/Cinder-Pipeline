@@ -142,6 +142,70 @@ void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destination
 
 #pragma mark -
 
+BranchRef Context::branchForNode(const NodeRef& node) {
+    std::map<NodeRef, BranchRef> branchMap;
+    std::deque<NodeRef> nodeStack;
+
+    // create branches
+    NodeRef n = node;
+    while (n) {
+        if (branchMap.count(n) == 0) {
+            std::deque<NodeRef> nodes;
+
+            NodeRef n2 = n;
+            while (n2) {
+                nodes.push_front(n2);
+
+                std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n2, NodePortType::FBOImage);
+                if (connections.size() == 0) {
+                    n2 = nullptr;
+                } else if (connections.size() == 1) {
+                    NodePortConnectionRef connection = connections.at(0);
+                    n2 = connection->getSourceNode();
+
+                    // branch on multiple outputs
+                    if (getOutputConnectionsForNodeWithPortType(n2, NodePortType::FBOImage).size() > 1) {
+                        nodeStack.push_front(n2);
+                        n2 = nullptr;
+                    }
+                } else if (connections.size() > 1) {
+                    // branch on multiple inputs
+                    for (const NodePortConnectionRef& c : connections) {
+                        nodeStack.push_front(c->getSourceNode());
+                    }
+                    n2 = nullptr;
+                }
+            }
+
+            BranchRef branch = Branch::create(nodes);
+            branchMap[n] = branch;
+        }
+
+        if (nodeStack.empty()) {
+            n = nullptr;
+        } else {
+            n = nodeStack.front();
+            nodeStack.pop_front();
+        }
+    }
+
+    // connect branches
+    for (auto& kv : branchMap) {
+        BranchRef destinationBranch = kv.second;
+        n = destinationBranch->getNodes().front();
+
+        std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
+        for (const NodePortConnectionRef& c : connections) {
+            BranchRef sourceBranch = branchMap[c->getSourceNode()];
+            destinationBranch->connectInputBranch(sourceBranch);
+        }
+    }
+
+    return branchMap[node];
+}
+
+#pragma mark -
+
 gl::Texture& Context::evaluate(const NodeRef& node) {
     // rebuild render stack (flush cache) if the stack is empty or the node changes (cache key)
     if (mRenderStack.size() == 0 || node != mRenderNode) {
@@ -163,7 +227,7 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
         // ASCII visualization
         cinder::app::console() << std::string(3, '#') << std::endl;
         for (const BranchRef& b : mRenderStack) {
-            printBranch(b);
+            cinder::app::console() << b->compactDescription() << std::endl;
         }
         cinder::app::console() << std::endl;
 #endif
@@ -261,86 +325,6 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
 }
 
 #pragma mark -
-
-void Context::printBranch(const BranchRef& branch) {
-//    for (const NodeRef& n : branch->getNodes()) {
-//        cinder::app::console() << n->getName() << " → ";
-//    }
-//    cinder::app::console() << " (" << branch->getMaxInputCost() << ")" << std::endl;
-    for (const NodeRef& n : branch->getNodes()) {
-        if (!std::dynamic_pointer_cast<SourceNode>(n)) {
-            cinder::app::console() << " → ";
-        }
-
-        std::string name = n->getName();
-        name.resize(3, ' ');
-        cinder::app::console() << "[" << name << "]";
-    }
-    cinder::app::console() << " (" << branch->getMaxInputCost() << ")";
-    cinder::app::console() << std::endl;
-}
-
-BranchRef Context::branchForNode(const NodeRef& node) {
-    std::map<NodeRef, BranchRef> branchMap;
-    std::deque<NodeRef> nodeStack;
-
-    // create branches
-    NodeRef n = node;
-    while (n) {
-        if (branchMap.count(n) == 0) {
-            std::deque<NodeRef> nodes;
-
-            NodeRef n2 = n;
-            while (n2) {
-                nodes.push_front(n2);
-
-                std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n2, NodePortType::FBOImage);
-                if (connections.size() == 0) {
-                    n2 = nullptr;
-                } else if (connections.size() == 1) {
-                    NodePortConnectionRef connection = connections.at(0);
-                    n2 = connection->getSourceNode();
-
-                    // branch on multiple outputs
-                    if (getOutputConnectionsForNodeWithPortType(n2, NodePortType::FBOImage).size() > 1) {
-                        nodeStack.push_front(n2);
-                        n2 = nullptr;
-                    }
-                } else if (connections.size() > 1) {
-                    // branch on multiple inputs
-                    for (const NodePortConnectionRef& c : connections) {
-                        nodeStack.push_front(c->getSourceNode());
-                    }
-                    n2 = nullptr;
-                }
-            }
-
-            BranchRef branch = Branch::create(nodes);
-            branchMap[n] = branch;
-        }
-
-        if (nodeStack.empty()) {
-            n = nullptr;
-        } else {
-            n = nodeStack.front();
-            nodeStack.pop_front();
-        }
-    }
-
-    // connect branches
-    for (auto& kv : branchMap) {
-        BranchRef destinationBranch = kv.second;
-        n = destinationBranch->getNodes().front();
-
-        std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
-        for (const NodePortConnectionRef& c : connections) {
-            BranchRef sourceBranch = branchMap[c->getSourceNode()];
-            destinationBranch->connectInputBranch(sourceBranch);
-        }
-    }
-
-    return branchMap[node];
-}
 
 std::deque<BranchRef> Context::renderStackForRootBranch(const BranchRef& branch) {
     std::deque<BranchRef> renderStack;

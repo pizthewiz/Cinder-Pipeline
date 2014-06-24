@@ -45,7 +45,6 @@ private:
     std::string mDestinationPortKey;
 };
 
-
 class Context : public std::enable_shared_from_this<Context> {
 public:
     static ContextRef create();
@@ -101,6 +100,8 @@ public:
         return mOutputConnections[node][portKey];
     }
 
+    BranchRef branchForNode(const NodeRef& node);
+
     gl::Texture& evaluate(const NodeRef& node);
 
 private:
@@ -108,9 +109,6 @@ private:
 
     void connectNodes(const NodeRef& sourceNode, const NodePortRef& sourceNodePort, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
 
-    void printBranch(const BranchRef& branch);
-
-    BranchRef branchForNode(const NodeRef& node);
     std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
 
     gl::Fbo mFBO;
