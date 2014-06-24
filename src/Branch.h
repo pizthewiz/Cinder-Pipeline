@@ -72,6 +72,23 @@ public:
     }
     unsigned int getMaxInputCost() const { return mMaxInputCost; }
 
+    std::string description() {
+        std::string description;
+        for (const NodeRef& n : getNodes()) {
+            description += n->getName() + " → ";
+        }
+        return description;
+    }
+    std::string compactDescription() {
+        std::string description;
+        for (const NodeRef& n : getNodes()) {
+            std::string name = n->getName();
+            name.resize(3, ' ');
+            description += "[" + name + "] → ";
+        }
+        return description;
+    }
+
 private:
     Branch(const std::deque<NodeRef> nodes) : mNodes(nodes), mMaxInputCost(0) {}
 
