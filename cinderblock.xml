@@ -9,7 +9,19 @@
     url="https://github.com/pizthewiz/Cinder-Pipeline"
     >
     <supports os="macosx" />
-    <headerPattern>src/*.h</headerPattern>
-    <sourcePattern>src/*.cpp</sourcePattern>
+    <header>src/Cinder-Pipeline.h</header>
+    <header>src/Node.h</header>
+    <header>src/SourceNode.h</header>
+    <header>src/EffectorNode.h</header>
+    <source>src/EffectorNode.cpp</source>
+    <header>src/Branch.h</header>
+    <header>src/Context.h</header>
+    <source>src/Context.cpp</source>
+    <header>src/BlurNode.h</header>
+    <source>src/BlurNode.cpp</source>
+    <header>src/TintNode.h</header>
+    <source>src/TintNode.cpp</source>
+    <header>src/BlendNode.h</header>
+    <source>src/BlendNode.cpp</source>
 </block>
 </cinder>
