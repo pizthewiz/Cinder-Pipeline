@@ -28,11 +28,11 @@ const std::string FragmentShaderBlur = R"(
 
 TintNode::TintNode() {
     std::vector<NodePortRef> inputPorts = {
-        NodePort::create("image", NodePortType::FBOImage),
-        // TODO - default of Vec4f(1.0, 1.0, 1.0, 1.0)
-        NodePort::create("tintColor", NodePortType::Vec4f),
+        NodePort::create(TintNodeInputPortKeyImage, NodePortType::FBOImage),
+        // TODO - min and max
+        NodePort::create(TintNodeInputPortKeyColor, NodePortType::Vec4f, Vec4f(1.0, 1.0, 1.0, 1.0)),
         // TODO - min 0.0, max 1.0
-        NodePort::create("amount", NodePortType::Float, 1.0f),
+        NodePort::create(TintNodeInputPortKeyAmount, NodePortType::Float, 1.0f),
     };
     setInputPorts(inputPorts);
     // NB - output port "image" of type NodePortType::FBOImage is already present
@@ -44,15 +44,15 @@ TintNode::~TintNode() {
 }
 
 void TintNode::render(const FBOImageRef& outputFBOImage) {
-    FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>("image");
-    Vec4f tintColor = getValueForInputPortKey<Vec4f>("tintColor");
-    float amount = getValueForInputPortKey<float>("amount");
+    FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(TintNodeInputPortKeyImage);
+    Vec4f tintColor = getValueForInputPortKey<Vec4f>(TintNodeInputPortKeyColor);
+    float amount = getValueForInputPortKey<float>(TintNodeInputPortKeyAmount);
 
     inputFBOImage->bindTexture(0); {
         mShader->bind(); {
-            mShader->uniform("image", 0);
-            mShader->uniform("tintColor", tintColor);
-            mShader->uniform("amount", amount);
+            mShader->uniform(TintNodeInputPortKeyImage, 0);
+            mShader->uniform(TintNodeInputPortKeyColor, tintColor);
+            mShader->uniform(TintNodeInputPortKeyAmount, amount);
             gl::drawSolidRect(outputFBOImage->getFBO().getBounds());
         } mShader->unbind();
     } inputFBOImage->unbindTexture();

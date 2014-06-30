@@ -51,11 +51,11 @@ const std::string FragmentShaderBlur = R"(
 
 BlurNode::BlurNode() {
     std::vector<NodePortRef> inputPorts = {
-        NodePort::create("image", NodePortType::FBOImage),
+        NodePort::create(BlurNodeInputPortKeyImage, NodePortType::FBOImage),
         // TODO - would be nice if this were a resolution independent value, a multiplier maybe
-        NodePort::create("pixelSize", NodePortType::Vec2f),
+        NodePort::create(BlurNodeInputPortKeyPixelSize, NodePortType::Vec2f),
         // TODO - min 0.0, max 1.0
-        NodePort::create("amount", NodePortType::Float, 1.0f),
+        NodePort::create(BlurNodeInputPortKeyAmount, NodePortType::Float, 1.0f),
     };
     setInputPorts(inputPorts);
     // NB - output port "image" of type NodePortType::FBOImage is already present
@@ -67,15 +67,15 @@ BlurNode::~BlurNode() {
 }
 
 void BlurNode::render(const FBOImageRef& outputFBOImage) {
-    FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>("image");
-    Vec2f pixelSize = getValueForInputPortKey<Vec2f>("pixelSize");
-    float amount = getValueForInputPortKey<float>("amount");
+    FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(BlurNodeInputPortKeyImage);
+    Vec2f pixelSize = getValueForInputPortKey<Vec2f>(BlurNodeInputPortKeyPixelSize);
+    float amount = getValueForInputPortKey<float>(BlurNodeInputPortKeyAmount);
 
     inputFBOImage->bindTexture(0); {
         mShader->bind(); {
-            mShader->uniform("image", 0);
-            mShader->uniform("pixelSize", pixelSize);
-            mShader->uniform("amount", amount);
+            mShader->uniform(BlurNodeInputPortKeyImage, 0);
+            mShader->uniform(BlurNodeInputPortKeyPixelSize, pixelSize);
+            mShader->uniform(BlurNodeInputPortKeyAmount, amount);
             gl::drawSolidRect(outputFBOImage->getFBO().getBounds());
         } mShader->unbind();
     } inputFBOImage->unbindTexture();
