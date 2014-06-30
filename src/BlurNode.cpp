@@ -51,7 +51,7 @@ const std::string FragmentShaderBlur = R"(
 
 BlurNode::BlurNode() {
     std::vector<NodePortRef> inputPorts = {
-        NodePort::create(BlurNodeInputPortKeyImage, NodePortType::FBOImage),
+        NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         // TODO - would be nice if this were a resolution independent value, a multiplier maybe
         NodePort::create(BlurNodeInputPortKeyPixelSize, NodePortType::Vec2f),
         // TODO - min 0.0, max 1.0
@@ -67,13 +67,13 @@ BlurNode::~BlurNode() {
 }
 
 void BlurNode::render(const FBOImageRef& outputFBOImage) {
-    FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(BlurNodeInputPortKeyImage);
+    FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(NodeInputPortKeyImage);
     Vec2f pixelSize = getValueForInputPortKey<Vec2f>(BlurNodeInputPortKeyPixelSize);
     float amount = getValueForInputPortKey<float>(BlurNodeInputPortKeyAmount);
 
     inputFBOImage->bindTexture(0); {
         mShader->bind(); {
-            mShader->uniform(BlurNodeInputPortKeyImage, 0);
+            mShader->uniform(NodeInputPortKeyImage, 0);
             mShader->uniform(BlurNodeInputPortKeyPixelSize, pixelSize);
             mShader->uniform(BlurNodeInputPortKeyAmount, amount);
             gl::drawSolidRect(outputFBOImage->getFBO().getBounds());

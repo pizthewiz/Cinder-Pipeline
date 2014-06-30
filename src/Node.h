@@ -67,11 +67,14 @@ private:
     boost::any mDefault;
 };
 
+static const std::string NodeInputPortKeyImage = "image";
+static const std::string NodeOutputPortKeyImage = "image";
+
 class Node : public std::enable_shared_from_this<Node>, public boost::noncopyable {
 public:
     Node() {
         mOutputPorts = {
-            NodePort::create("image", NodePortType::FBOImage),
+            NodePort::create(NodeOutputPortKeyImage, NodePortType::FBOImage),
         };
     }
     virtual ~Node() {}

@@ -140,7 +140,7 @@ void Context::connectNodes(const NodeRef& sourceNode, const std::string& sourceN
 }
 
 void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode) {
-    connectNodes(sourceNode, "image", destinationNode, "image");
+    connectNodes(sourceNode, NodeOutputPortKeyImage, destinationNode, NodeInputPortKeyImage);
 }
 
 #pragma mark -

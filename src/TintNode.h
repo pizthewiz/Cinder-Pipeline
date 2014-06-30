@@ -14,7 +14,6 @@ using namespace Cinder::Pipeline;
 
 typedef std::shared_ptr<class TintNode> TintNodeRef;
 
-static const std::string TintNodeInputPortKeyImage = "image";
 static const std::string TintNodeInputPortKeyColor = "tintColor";
 static const std::string TintNodeInputPortKeyAmount = "amount";
 

@@ -14,7 +14,6 @@ using namespace Cinder::Pipeline;
 
 typedef std::shared_ptr<class BlurNode> BlurNodeRef;
 
-static const std::string BlurNodeInputPortKeyImage = "image";
 static const std::string BlurNodeInputPortKeyPixelSize = "pixelSize";
 static const std::string BlurNodeInputPortKeyAmount = "amount";
 

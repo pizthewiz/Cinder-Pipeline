@@ -43,7 +43,7 @@ const std::string FragmentShaderBlend = R"(
 
 BlendNode::BlendNode() {
     std::vector<NodePortRef> inputPorts = {
-        NodePort::create(BlendNodeInputPortKeyImage, NodePortType::FBOImage),
+        NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         NodePort::create(BlendNodeInputPortKeyBlendImage, NodePortType::FBOImage),
         // TODO - set possible values
         NodePort::create(BlendNodeInputPortKeyOperation, NodePortType::Int, BlendOperation::Over),
@@ -57,14 +57,14 @@ BlendNode::~BlendNode() {
 }
 
 void BlendNode::render(const FBOImageRef& outputFBOImage) {
-    FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(BlendNodeInputPortKeyImage);
+    FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(NodeInputPortKeyImage);
     FBOImageRef inputFBOImage2 = getValueForInputPortKey<FBOImageRef>(BlendNodeInputPortKeyBlendImage);
     int blendOperation = getValueForInputPortKey<int>(BlendNodeInputPortKeyOperation);
 
     inputFBOImage->bindTexture(0); {
         inputFBOImage2->bindTexture(1); {
             mShader->bind(); {
-                mShader->uniform(BlendNodeInputPortKeyImage, 0);
+                mShader->uniform(NodeInputPortKeyImage, 0);
                 mShader->uniform(BlendNodeInputPortKeyBlendImage, 1);
                 mShader->uniform(BlendNodeInputPortKeyOperation, blendOperation);
                 gl::drawSolidRect(outputFBOImage->getFBO().getBounds());

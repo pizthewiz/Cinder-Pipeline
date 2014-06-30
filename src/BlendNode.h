@@ -14,7 +14,6 @@ using namespace Cinder::Pipeline;
 
 typedef std::shared_ptr<class BlendNode> BlendNodeRef;
 
-static const std::string BlendNodeInputPortKeyImage = "image";
 static const std::string BlendNodeInputPortKeyBlendImage = "blendImage";
 static const std::string BlendNodeInputPortKeyOperation = "blendOperation";
 

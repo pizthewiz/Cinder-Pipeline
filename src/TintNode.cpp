@@ -28,7 +28,7 @@ const std::string FragmentShaderBlur = R"(
 
 TintNode::TintNode() {
     std::vector<NodePortRef> inputPorts = {
-        NodePort::create(TintNodeInputPortKeyImage, NodePortType::FBOImage),
+        NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         // TODO - min and max
         NodePort::create(TintNodeInputPortKeyColor, NodePortType::Vec4f, Vec4f(1.0, 1.0, 1.0, 1.0)),
         // TODO - min 0.0, max 1.0
@@ -44,13 +44,13 @@ TintNode::~TintNode() {
 }
 
 void TintNode::render(const FBOImageRef& outputFBOImage) {
-    FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(TintNodeInputPortKeyImage);
+    FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(NodeInputPortKeyImage);
     Vec4f tintColor = getValueForInputPortKey<Vec4f>(TintNodeInputPortKeyColor);
     float amount = getValueForInputPortKey<float>(TintNodeInputPortKeyAmount);
 
     inputFBOImage->bindTexture(0); {
         mShader->bind(); {
-            mShader->uniform(TintNodeInputPortKeyImage, 0);
+            mShader->uniform(NodeInputPortKeyImage, 0);
             mShader->uniform(TintNodeInputPortKeyColor, tintColor);
             mShader->uniform(TintNodeInputPortKeyAmount, amount);
             gl::drawSolidRect(outputFBOImage->getFBO().getBounds());
