@@ -54,8 +54,8 @@ BlurNode::BlurNode() {
         NodePort::create("image", NodePortType::FBOImage),
         // TODO - would be nice if this were a resolution independent value, a multiplier maybe
         NodePort::create("pixelSize", NodePortType::Vec2f),
-        // TODO - default of 1.0f, max 1.0f, min 0.0f
-        NodePort::create("amount", NodePortType::Float),
+        // TODO - min 0.0, max 1.0
+        NodePort::create("amount", NodePortType::Float, 1.0f),
     };
     setInputPorts(inputPorts);
     // NB - output port "image" of type NodePortType::FBOImage is already present

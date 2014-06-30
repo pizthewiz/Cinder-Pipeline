@@ -45,7 +45,8 @@ BlendNode::BlendNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create("image", NodePortType::FBOImage),
         NodePort::create("blendImage", NodePortType::FBOImage),
-        NodePort::create("blendOperation", NodePortType::Int),
+        // TODO - set possible values
+        NodePort::create("blendOperation", NodePortType::Int, BlendOperation::Over),
     };
     setInputPorts(inputPorts);
 
