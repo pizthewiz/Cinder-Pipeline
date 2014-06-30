@@ -23,14 +23,22 @@ mContext->setup(texture->getSize(), 2);
 SourceNodeRef sourceNode = mContext->makeNode(new SourceNode);
 sourceNode->setValueForInputPortKey(texture, SourceNodeInputPortKeyTexture);
 
+// create a color tint node and set to red
+TintNodeRef tintNode = mContext->makeNode(new TintNode);
+Vec4f color = Vec4f(1.0f, 0.0f, 0.0f, 1.0f);
+tintNode->setValueForInputPortKey(tintColor, TintNodeInputPortKeyColor);
+mContext->connectNodes(sourceNode, tintNode);
+
 // create horizontal blur, set size and connect to source
 BlurNodeRef blurNodeHorizontal = mContext->makeNode(new BlurNode);
-blurNodeHorizontal->setValueForInputPortKey(Vec2f(1.0f/texture->getWidth(), 0.0f), "pixelSize");
-mContext->connectNodes(sourceNode, blurNodeHorizontal);
+Vec2f size = Vec2f(1.0f/texture->getWidth(), 0.0f);
+blurNodeHorizontal->setValueForInputPortKey(size, BlurNodeInputPortKeyPixelSize);
+mContext->connectNodes(tintNode, blurNodeHorizontal);
 
 // create vertical blur, set size and connect to horizontal
 BlurNodeRef blurNodeVertical = mContext->makeNode(new BlurNode);
-blurNodeVertical->setValueForInputPortKey(Vec2f(0.0f, 1.0f/texture->getHeight()), "pixelSize");
+size = Vec2f(0.0f, 1.0f/texture->getHeight());
+blurNodeVertical->setValueForInputPortKey(size, BlurNodeInputPortKeyPixelSize);
 mContext->connectNodes(blurNodeHorizontal, blurNodeVertical);
 
 // evaluate
@@ -42,7 +50,7 @@ mTexture = mContext->evaluate(blurNodeVertical);
 ```
 
 ### LIMITATIONS
-At present, there is little if any error checking on missing or cyclic input connections; beware!
+At present, there is little if any error checking - beware!
 
 ### GREETZ
 - Heavily inspired by Rich Eakin's [Cinder-Audio2](https://forum.libcinder.org/topic/rfc-cinder-audio2-available-for-alpha-testing)
