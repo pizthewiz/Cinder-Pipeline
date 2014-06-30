@@ -10,6 +10,9 @@
 #include "SourceNode.h"
 #include "EffectorNode.h"
 #include "cinder/Utilities.h"
+#include "cinder/Json.h"
+
+#include "boost/format.hpp"
 
 using namespace ci;
 
@@ -202,6 +205,88 @@ BranchRef Context::branchForNode(const NodeRef& node) {
     }
 
     return branchMap[node];
+}
+
+std::string Context::serialize() {
+    std::map<NodeRef, std::string> nodeIdentifierMap;
+    for (size_t idx = 0; idx < mNodes.size(); idx++) {
+        const NodeRef& n = mNodes.at(idx);
+        nodeIdentifierMap[n] = str(boost::format("%1%-%2%") % n->getName() % idx);
+    }
+
+    JsonTree rootObject = JsonTree::makeObject();
+    for (const NodeRef& n : mNodes) {
+        JsonTree nodeObject = JsonTree::makeObject();
+        nodeObject.pushBack(JsonTree("identifier", nodeIdentifierMap[n]));
+        // TODO - ??? need some way to get classname
+        nodeObject.pushBack(JsonTree("type", "???"));
+
+        JsonTree valuesObject = JsonTree::makeObject("values");
+        for (const NodePortRef& port : n->getInputPorts()) {
+            if (!n->hasValueForInputPortKey(port->getKey())) {
+                continue;
+            }
+
+            switch (port->getType()) {
+                case NodePortType::Bool:
+                    valuesObject.pushBack(JsonTree(port->getKey(), n->getValueForInputPortKey<bool>(port->getKey())));
+                    break;
+                case NodePortType::Float:
+                    valuesObject.pushBack(JsonTree(port->getKey(), n->getValueForInputPortKey<float>(port->getKey())));
+                    break;
+                case NodePortType::Int:
+                    valuesObject.pushBack(JsonTree(port->getKey(), n->getValueForInputPortKey<int>(port->getKey())));
+                    break;
+                case NodePortType::Vec2f: {
+                    JsonTree valueObject = JsonTree::makeObject(port->getKey());
+                    Vec2f val = n->getValueForInputPortKey<Vec2f>(port->getKey());
+                    valueObject.pushBack(JsonTree("x", val.x));
+                    valueObject.pushBack(JsonTree("y", val.y));
+                    valuesObject.pushBack(valueObject);
+                    break;
+                }
+                case NodePortType::Vec4f: {
+                    JsonTree valueObject = JsonTree::makeObject(port->getKey());
+                    Vec4f val = n->getValueForInputPortKey<Vec4f>(port->getKey());
+                    valueObject.pushBack(JsonTree("x", val.x));
+                    valueObject.pushBack(JsonTree("y", val.y));
+                    valueObject.pushBack(JsonTree("z", val.z));
+                    valueObject.pushBack(JsonTree("w", val.w));
+                    valuesObject.pushBack(valueObject);
+                    break;
+                }
+                case NodePortType::FBOImage:
+                case NodePortType::Texture:
+                    // NB - transient values, nothing to serialize
+                default:
+                    break;
+            }
+        }
+        nodeObject.pushBack(valuesObject);
+
+        JsonTree inputConnections = JsonTree::makeArray("inputConnections");
+        for (const NodePortConnectionRef& c : getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage)) {
+            JsonTree connectionObject = JsonTree::makeObject();
+            connectionObject.pushBack(JsonTree("sourceNode", nodeIdentifierMap[c->getSourceNode()]));
+            connectionObject.pushBack(JsonTree("sourcePortKey", c->getSourcePortKey()));
+            connectionObject.pushBack(JsonTree("destinationPortKey", c->getDestinationPortKey()));
+            inputConnections.pushBack(connectionObject);
+        }
+        nodeObject.pushBack(inputConnections);
+
+        JsonTree outputConnections = JsonTree::makeArray("outputConnections");
+        for (const NodePortConnectionRef& c : getOutputConnectionsForNodeWithPortType(n, NodePortType::FBOImage)) {
+            JsonTree connectionObject = JsonTree::makeObject();
+            connectionObject.pushBack(JsonTree("sourcePortKey", c->getSourcePortKey()));
+            connectionObject.pushBack(JsonTree("destinationNode", nodeIdentifierMap[c->getDestinationNode()]));
+            connectionObject.pushBack(JsonTree("destinationPortKey", c->getDestinationPortKey()));
+            outputConnections.pushBack(connectionObject);
+        }
+        nodeObject.pushBack(outputConnections);
+
+        rootObject.pushBack(nodeObject);
+    }
+    return rootObject.serialize();
 }
 
 #pragma mark -

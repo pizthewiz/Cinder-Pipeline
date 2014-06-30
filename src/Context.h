@@ -102,6 +102,8 @@ public:
 
     BranchRef branchForNode(const NodeRef& node);
 
+    std::string serialize();
+
     gl::Texture& evaluate(const NodeRef& node);
 
 private:
