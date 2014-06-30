@@ -137,7 +137,14 @@ public:
 
     template <typename T>
     void setValueForInputPortKey(T value, const std::string& key) {
+        // TODO - bail if unchanged, boost::any doesn't implement ==
+
         mInputPortValueMap[key] = value;
+
+        // value changed handler
+        if (mInputPortValueChangedHandlerMap.find(key) != mInputPortValueChangedHandlerMap.end()) {
+            mInputPortValueChangedHandlerMap[key](key);
+        }
     }
     template <typename T>
 	inline T getValueForInputPortKey(const std::string& key) {
@@ -147,10 +154,19 @@ public:
         return mInputPortValueMap.find(key) != mInputPortValueMap.end();
     }
 
+    template<typename T, typename Y>
+    inline void connectValueForInputPortKeyChangedHandler(const std::string& key, T handler, Y* obj) {
+        connectValueForInputPortKeyChangedHandler(key, std::bind(handler, obj, std::placeholders::_1));
+    }
+    void connectValueForInputPortKeyChangedHandler(const std::string& key, const std::function<void(const std::string&)>& handler) {
+        mInputPortValueChangedHandlerMap[key] = handler;
+    }
+
 protected:
     std::vector<NodePortRef> mInputPorts;
     std::vector<NodePortRef> mOutputPorts;
     std::map<std::string, boost::any> mInputPortValueMap;
+    std::map<std::string, std::function<void (const std::string&)>> mInputPortValueChangedHandlerMap;
 };
 
 }}
