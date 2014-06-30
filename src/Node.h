@@ -42,7 +42,7 @@ private:
     int mAttachment;
 };
 
-enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Vec4f};
+enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Vec4f, FilePath};
 
 // TODO - min, max
 class NodePort : public std::enable_shared_from_this<NodePort> {

@@ -255,6 +255,11 @@ std::string Context::serialize() {
                     valuesObject.pushBack(valueObject);
                     break;
                 }
+                case NodePortType::FilePath: {
+                    fs::path path = n->getValueForInputPortKey<fs::path>(port->getKey());
+                    valuesObject.pushBack(JsonTree(port->getKey(), path.string()));
+                    break;
+                }
                 case NodePortType::FBOImage:
                 case NodePortType::Texture:
                     // NB - transient values, nothing to serialize
