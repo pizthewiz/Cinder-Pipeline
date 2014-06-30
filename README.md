@@ -2,9 +2,9 @@
 `Cinder-Pipeline` is an imaging pipeline to construct and evaluate chained shader-based effectors.
 
 A `Context` is the container around which nodes are created, connections are made and nodes are evaluated. `Context` evaluates a `Node` by walking up the tree through the node's input connections and constructs a collection of ordered `Branch`.
-A `Node` has multiple input `NodePort` which are both keyed and typed. Several data types are supported:
+A `Node` may have multiple input `NodePort` which are both keyed and typed. Several data types are supported:
 ```C++
-enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Vec4f};
+enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Vec4f, FilePath};
 ```
 Although multiple data types are supported, being an imaging pipeline, dependencies are only calculated on `NodePortType::FBOImage` ports. Supporting that, all `Node` instances have a fixed single output port `NodeOutputPortKeyImage` of type `NodePortType::FBOImage`.
 
@@ -45,8 +45,9 @@ mContext->connectNodes(blurNodeHorizontal, blurNodeVertical);
 mTexture = mContext->evaluate(blurNodeVertical);
 ```
 
+### CUSTOM EFFECTOR NODE
 ```C++
-// TODO - custom effector node
+// TODO
 ```
 
 ### LIMITATIONS
