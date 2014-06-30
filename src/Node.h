@@ -44,21 +44,27 @@ private:
 
 enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Vec4f};
 
-// TODO - default, min, max
+// TODO - min, max
 class NodePort : public std::enable_shared_from_this<NodePort> {
 public:
     static NodePortRef create(const std::string& key, const NodePortType type = NodePortType::FBOImage) {
-        return NodePortRef(new NodePort(key, type))->shared_from_this();
+        return NodePortRef(new NodePort(key, type, boost::any()))->shared_from_this();
+    }
+    static NodePortRef create(const std::string& key, const NodePortType type, boost::any valueDefault) {
+        return NodePortRef(new NodePort(key, type, valueDefault))->shared_from_this();
     }
 
     inline std::string& getKey() { return mKey; }
     inline NodePortType getType() { return mType; }
+    inline bool hasValueDefault() { return !mDefault.empty(); }
+    inline boost::any getValueDefault() { return mDefault; }
 
 private:
-    NodePort(const std::string& key, const NodePortType type) : mKey(key), mType(type) {}
+    NodePort(const std::string& key, const NodePortType type, boost::any valueDefault) : mKey(key), mType(type), mDefault(valueDefault) {}
 
     std::string mKey;
     NodePortType mType;
+    boost::any mDefault;
 };
 
 class Node : public std::enable_shared_from_this<Node>, public boost::noncopyable {
@@ -72,7 +78,17 @@ public:
 
     virtual std::string getName() const = 0;
 
-    void setInputPorts(std::vector<NodePortRef>& ports) { mInputPorts = ports; }
+    void setInputPorts(std::vector<NodePortRef>& ports) {
+        mInputPorts = ports;
+
+        // set default values
+        for (const NodePortRef& port : mInputPorts) {
+            if (!port->hasValueDefault()) {
+                continue;
+            }
+            setValueForInputPortKey(port->getValueDefault(), port->getKey());
+        }
+    }
     inline std::vector<NodePortRef>& getInputPorts() { return mInputPorts; }
     inline std::vector<std::string> getInputPortKeys() {
         // TODO - replace with some sort of collect

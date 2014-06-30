@@ -7,7 +7,7 @@
 - mechanism to allow samplers?
 
 ### NODE
-- min, max, default
+- min, max
 - don't recreate shaders, a single static one might be fine
 - validate node inputs and outputs, prevent cycles
 - texture, FBOImage, RTT source nodes
@@ -19,3 +19,4 @@
 ### GENERAL
 - include a sample application
 - add some profiling, either [sansumbrella's Pockets](https://github.com/sansumbrella/Pockets/blob/dev/src/pockets/Profiling.h) or a simple cinder::Timer.
+- replace vector with set when uniqueness is needed
