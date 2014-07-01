@@ -207,6 +207,8 @@ BranchRef Context::branchForNode(const NodeRef& node) {
     return branchMap[node];
 }
 
+#pragma mark -
+
 std::string Context::serialize() {
     std::map<NodeRef, std::string> nodeIdentifierMap;
     for (size_t idx = 0; idx < mNodes.size(); idx++) {
@@ -292,6 +294,18 @@ std::string Context::serialize() {
         rootObject.pushBack(nodeObject);
     }
     return rootObject.serialize();
+}
+
+bool Context::serialize(const fs::path& path) {
+    std::ofstream outfile(path.string());
+    if (!outfile.is_open()) {
+        return false;
+    }
+
+    outfile << serialize();
+    outfile.close();
+    
+    return true;
 }
 
 #pragma mark -
@@ -414,7 +428,7 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
     return mFBO.getTexture(outAttachment);
 }
 
-#pragma mark -
+#pragma mark - PRIVATE
 
 std::deque<BranchRef> Context::renderStackForRootBranch(const BranchRef& branch) {
     std::deque<BranchRef> renderStack;
