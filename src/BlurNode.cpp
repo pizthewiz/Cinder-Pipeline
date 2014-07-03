@@ -10,8 +10,8 @@
 
 using namespace Cinder::Pipeline;
 
-// taken from https://github.com/paulhoux/Cinder-Samples/blob/master/BloomingNeon/assets/blur_frag.glsl
-//  https://forum.libcinder.org/topic/fbo-gaussian-blur-shader-101#23286000000989085
+// (c) Paul Houx, 2014. https://github.com/paulhoux/Cinder-Samples/blob/master/BloomingNeon/assets/blur.frag
+// plus tweak suggested in thread: https://forum.libcinder.org/topic/fbo-gaussian-blur-shader-101#23286000000989085
 const std::string FragmentShaderBlur = R"(
     #version 120
     uniform sampler2D image;
