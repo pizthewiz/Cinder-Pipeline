@@ -93,6 +93,8 @@ public:
         }
     }
     inline std::vector<NodePortRef>& getInputPorts() { return mInputPorts; }
+    inline std::vector<NodePortRef>& getOutputPorts() { return mOutputPorts; }
+
     inline std::vector<std::string> getInputPortKeys() {
         // TODO - replace with some sort of collect
         std::vector<std::string> keys;
@@ -101,9 +103,6 @@ public:
         }
         return keys;
     }
-
-    inline std::vector<NodePortRef>& getOutputPorts() { return mOutputPorts; }
-
     inline std::vector<std::string> getInputPortKeysWithType(NodePortType type) {
         std::vector<std::string> filteredKeys;
         for (const NodePortRef& port : mInputPorts) {
