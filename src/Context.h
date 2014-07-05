@@ -53,6 +53,8 @@ public:
     // NB - attachments = max FBOImage input ports in any node + 1
     void setup(const Vec2i size, int attachments = 3);
 
+    inline std::vector<NodeRef> getNodes() const { return mNodes; }
+
     template<typename NodeT>
     std::shared_ptr<NodeT> makeNode(NodeT* node) {
         std::shared_ptr<NodeT> result(node);
