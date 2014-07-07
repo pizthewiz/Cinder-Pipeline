@@ -11,7 +11,9 @@
     <supports os="macosx" />
     <header>src/Cinder-Pipeline.h</header>
     <header>src/Node.h</header>
+    <source>src/Node.cpp</source>
     <header>src/SourceNode.h</header>
+    <header>src/TextureSourceNode.h</header>
     <header>src/EffectorNode.h</header>
     <source>src/EffectorNode.cpp</source>
     <header>src/Branch.h</header>
