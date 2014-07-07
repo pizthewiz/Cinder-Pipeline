@@ -61,12 +61,52 @@ NodePortRef Node::getOutputPortForKey(const std::string& key) {
 }
 
 void Node::setValueForInputPortKey(const boost::any& value, const std::string& key) {
-    mInputPortValueMap[key] = value;
+    boost::any val = value;
+    NodePortRef port = getInputPortForKey(key);
+
+    switch (port->getType()) {
+        case NodePortType::Float:
+            val = clampValue<float>(value, port->getValueMinimum(), port->getValueMaximum());
+            break;
+        case NodePortType::Int:
+            val = clampValue<int>(value, port->getValueMinimum(), port->getValueMaximum());
+            break;
+        case NodePortType::Vec2f:
+        case NodePortType::Vec4f:
+            // TODO - ?
+            break;
+        case NodePortType::FBOImage:
+        case NodePortType::Texture:
+        case NodePortType::Bool:
+        case NodePortType::FilePath:
+        default:
+            break;
+    }
+
+    // TODO - bail if value is unchanged http://stackoverflow.com/questions/6029092/compare-boostany-contents/6029595#6029595
+
+    mInputPortValueMap[key] = val;
 
     // value changed handler
     if (mInputPortValueChangedHandlerMap.find(key) != mInputPortValueChangedHandlerMap.end()) {
         mInputPortValueChangedHandlerMap[key](key);
     }
+}
+
+#pragma mark -
+
+template <typename T>
+boost::any Node::clampValue(const boost::any& value, const boost::any& minimum, const boost::any& maximum) {
+    T val = boost::any_cast<T>(value);
+    if (!minimum.empty()) {
+        T m = boost::any_cast<T>(minimum);
+        val = val < m ? m : val;
+    }
+    if (!maximum.empty()) {
+        T m = boost::any_cast<T>(maximum);
+        val = val > m ? m : val;
+    }
+    return val;
 }
 
 }}

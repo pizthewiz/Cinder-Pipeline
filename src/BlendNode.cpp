@@ -46,7 +46,7 @@ BlendNode::BlendNode() {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         NodePort::create(BlendNodeInputPortKeyBlendImage, NodePortType::FBOImage),
         // TODO - set possible values
-        NodePort::create(BlendNodeInputPortKeyOperation, NodePortType::Int, BlendOperation::Over),
+        NodePort::create(BlendNodeInputPortKeyOperation, NodePortType::Int, static_cast<int>(BlendOperation::Over)),
     };
     setInputPorts(inputPorts);
 

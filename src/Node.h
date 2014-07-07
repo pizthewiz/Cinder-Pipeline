@@ -9,7 +9,6 @@
 #pragma once
 
 #include "cinder/gl/Texture.h"
-#include "cinder/gl/GlslProg.h"
 #include "cinder/gl/Fbo.h"
 #include <boost/any.hpp>
 
@@ -37,34 +36,44 @@ public:
 
 private:
     FBOImage(const gl::Fbo& fbo, const int attachment) : mFBO(fbo), mAttachment(attachment) {}
-    
+
     gl::Fbo mFBO;
     int mAttachment;
 };
 
 enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Vec4f, FilePath};
 
-// TODO - min, max
 class NodePort : public std::enable_shared_from_this<NodePort> {
 public:
     static NodePortRef create(const std::string& key, const NodePortType type = NodePortType::FBOImage) {
-        return NodePortRef(new NodePort(key, type, boost::any()))->shared_from_this();
+        return NodePortRef(new NodePort(key, type, boost::any(), boost::any(), boost::any()))->shared_from_this();
     }
     static NodePortRef create(const std::string& key, const NodePortType type, boost::any valueDefault) {
-        return NodePortRef(new NodePort(key, type, valueDefault))->shared_from_this();
+        return NodePortRef(new NodePort(key, type, valueDefault, boost::any(), boost::any()))->shared_from_this();
+    }
+    static NodePortRef create(const std::string& key, const NodePortType type, boost::any valueDefault, boost::any valueMinimum, boost::any valueMaximum) {
+        return NodePortRef(new NodePort(key, type, valueDefault, valueMinimum, valueMaximum))->shared_from_this();
     }
 
     inline std::string& getKey() { return mKey; }
     inline NodePortType getType() { return mType; }
+
     inline bool hasValueDefault() { return !mDefault.empty(); }
     inline boost::any getValueDefault() { return mDefault; }
+    inline bool hasValueMinimum() { return !mMinimum.empty(); }
+    inline boost::any getValueMinimum() { return mMinimum; }
+    inline bool hasValueMaximum() { return !mMaximum.empty(); }
+    inline boost::any getValueMaximum() { return mMaximum; }
 
 private:
-    NodePort(const std::string& key, const NodePortType type, boost::any valueDefault) : mKey(key), mType(type), mDefault(valueDefault) {}
+    NodePort(const std::string& key, const NodePortType type, boost::any def, boost::any min, boost::any max) : mKey(key), mType(type), mDefault(def), mMinimum(min), mMaximum(max) {}
 
     std::string mKey;
     NodePortType mType;
+
     boost::any mDefault;
+    boost::any mMinimum;
+    boost::any mMaximum;
 };
 
 static const std::string NodeInputPortKeyImage = "image";
@@ -104,6 +113,9 @@ public:
     }
 
 protected:
+    template <typename T>
+    boost::any clampValue(const boost::any& value, const boost::any& minimum, const boost::any& maximum);
+
     std::vector<NodePortRef> mInputPorts;
     std::vector<NodePortRef> mOutputPorts;
     std::map<std::string, boost::any> mInputPortValueMap;

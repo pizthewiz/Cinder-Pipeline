@@ -9,6 +9,7 @@
 #pragma once
 
 #include "Node.h"
+#include "cinder/gl/GlslProg.h"
 #include "cinder/Utilities.h"
 
 namespace Cinder { namespace Pipeline {
