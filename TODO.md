@@ -3,7 +3,7 @@
 - allow node port disconnection
 - allow node removal
 - JSON load
-- prevent cycles and verify port type match on connection
+- prevent cycles on connection
 - use [GL_NV_texture_barrier](http://www.opengl.org/registry/specs/NV/texture_barrier.txt) for [texture-internal ping-pong'ing](https://www.opengl.org/discussion_boards/showthread.php/173265-GL_NV_texture_barrier-on-ATI?p=1214070&viewfull=1#post1214070)
 - tile when texture size exceeds GL_MAX_TEXTURE_SIZE
 - mechanism to allow samplers?

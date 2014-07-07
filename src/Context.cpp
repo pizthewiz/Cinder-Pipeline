@@ -125,6 +125,11 @@ void Context::connectNodes(const NodeRef& sourceNode, const NodePortRef& sourceP
         }), connections.end());
     }
 
+    // bail if the port types don't match
+    if (sourcePort->getType() != destinationPort->getType()) {
+        return;
+    }
+
     NodePortConnectionRef connection = NodePortConnection::create(sourceNode, sourcePort->getKey(), destinationNode, destinationPort->getKey());
     mInputConnections[destinationNode][destinationPort->getKey()] = connection;
     mOutputConnections[sourceNode][sourcePort->getKey()].push_back(connection);
