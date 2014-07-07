@@ -21,7 +21,9 @@ class EffectorNode : public Node {
 public:
     virtual ~EffectorNode() {}
 
-    virtual std::string getName() const { return "Effector"; }
+    EffectorNodeRef getPtr() { return std::static_pointer_cast<EffectorNode>(shared_from_this()); }
+
+    virtual std::string getName() const = 0;
 
     virtual void render(const FBOImageRef& outputFBOImage) {}
 

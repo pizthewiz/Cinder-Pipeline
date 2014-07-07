@@ -26,7 +26,9 @@ public:
     }
     virtual ~SourceNode() {}
 
-    virtual std::string getName() const { return "Source"; }
+    SourceNodeRef getPtr() { return std::static_pointer_cast<SourceNode>(shared_from_this()); }
+
+    std::string getName() const { return "Source"; }
 
     virtual void render(const FBOImageRef& outputFBOImage) {
         gl::TextureRef texture = getValueForInputPortKey<gl::TextureRef>(SourceNodeInputPortKeyTexture);

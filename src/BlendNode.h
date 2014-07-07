@@ -24,7 +24,9 @@ public:
     BlendNode();
     ~BlendNode();
 
-    virtual std::string getName() const { return "Blend"; }
+    BlendNodeRef getPtr() { return std::static_pointer_cast<BlendNode>(shared_from_this()); }
+
+    std::string getName() const { return "Blend"; }
 
     void render(const FBOImageRef& outputFBOImage);
 };

@@ -22,7 +22,9 @@ public:
     BlurNode();
     ~BlurNode();
 
-    virtual std::string getName() const { return "Blur"; }
+    BlurNodeRef getPtr() { return std::static_pointer_cast<BlurNode>(shared_from_this()); }
+
+    std::string getName() const { return "Blur"; }
 
     void render(const FBOImageRef& outputFBOImage);
 };

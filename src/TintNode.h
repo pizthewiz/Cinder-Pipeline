@@ -22,7 +22,9 @@ public:
     TintNode();
     ~TintNode();
 
-    virtual std::string getName() const { return "Tint"; }
+    TintNodeRef getPtr() { return std::static_pointer_cast<TintNode>(shared_from_this()); }
+
+    std::string getName() const { return "Tint"; }
 
     void render(const FBOImageRef& outputFBOImage);
 };
