@@ -16,24 +16,16 @@ using namespace ci;
 
 typedef std::shared_ptr<class SourceNode> SourceNodeRef;
 
-static const std::string SourceNodeInputPortKeyTexture = "texture";
-
 class SourceNode : public Node {
 public:
-    SourceNode() {
-        std::vector<NodePortRef> inputPorts = {NodePort::create(SourceNodeInputPortKeyTexture, NodePortType::Texture)};
-        setInputPorts(inputPorts);
-    }
+    SourceNode() {}
     virtual ~SourceNode() {}
 
     SourceNodeRef getPtr() { return std::static_pointer_cast<SourceNode>(shared_from_this()); }
 
-    std::string getName() const { return "Source"; }
+    virtual std::string getName() const = 0;
 
-    virtual void render(const FBOImageRef& outputFBOImage) {
-        gl::TextureRef texture = getValueForInputPortKey<gl::TextureRef>(SourceNodeInputPortKeyTexture);
-        gl::draw(texture);
-    }
+    virtual void render(const FBOImageRef& outputFBOImage) = 0;
 };
 
 }}

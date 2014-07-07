@@ -14,6 +14,7 @@
 
 #include "Node.h"
 #include "SourceNode.h"
+#include "TextureSourceNode.h"
 #include "EffectorNode.h"
 #include "Branch.h"
 #include "Context.h"

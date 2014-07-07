@@ -8,7 +8,7 @@ enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Vec4f, File
 ```
 Although multiple data types are supported, being an imaging pipeline, dependencies are only calculated on `NodePortType::FBOImage` ports. Supporting that, all `Node` instances have a fixed single output port `NodeOutputPortKeyImage` of type `NodePortType::FBOImage`.
 
-Currently there are two derived node classes, `SourceNode` and `EffectorNode`. `SourceNode` is intended to be used directly and has a port `SourceNodeInputPortKeyTexture` of type `NodePortType::Texture` (internally `gl::TextureRef`) that will bring textures into the pipeline. `EffectorNode` is intended to act as a base class for shader-based operators and the input ports can vary based on the specific need.
+Currently there are two abstract derived node classes, `SourceNode` and `EffectorNode`. `SourceNode` has a single derived class `TextureSourceNode` that is intended to be used directly and has a `TextureSourceNodeInputPortKeyTexture` port of type `NodePortType::Texture` (internally `gl::TextureRef`) that will bring textures into the pipeline. `EffectorNode` is intended to act as a base for shader-based operators and the input ports can vary based on the specific need.
 
 ### USAGE
 ```C++
@@ -20,8 +20,8 @@ mContext = Context::create();
 mContext->setup(texture->getSize(), 2);
 
 // create source
-SourceNodeRef sourceNode = mContext->makeNode(new SourceNode);
-sourceNode->setValueForInputPortKey(texture, SourceNodeInputPortKeyTexture);
+TextureSourceNodeRef sourceNode = mContext->makeNode(new TextureSourceNode);
+sourceNode->setValueForInputPortKey(texture, TextureSourceNodeInputPortKeyTexture);
 
 // create a color tint node and set to red
 TintNodeRef tintNode = mContext->makeNode(new TintNode);
@@ -30,19 +30,13 @@ tintNode->setValueForInputPortKey(tintColor, TintNodeInputPortKeyColor);
 mContext->connectNodes(sourceNode, tintNode);
 
 // create horizontal blur, set size and connect to source
-BlurNodeRef blurNodeHorizontal = mContext->makeNode(new BlurNode);
+BlurNodeRef blurNode = mContext->makeNode(new BlurNode);
 Vec2f size = Vec2f(1.0f/texture->getWidth(), 0.0f);
-blurNodeHorizontal->setValueForInputPortKey(size, BlurNodeInputPortKeyPixelSize);
-mContext->connectNodes(tintNode, blurNodeHorizontal);
-
-// create vertical blur, set size and connect to horizontal
-BlurNodeRef blurNodeVertical = mContext->makeNode(new BlurNode);
-size = Vec2f(0.0f, 1.0f/texture->getHeight());
-blurNodeVertical->setValueForInputPortKey(size, BlurNodeInputPortKeyPixelSize);
-mContext->connectNodes(blurNodeHorizontal, blurNodeVertical);
+blurNode->setValueForInputPortKey(size, BlurNodeInputPortKeyPixelSize);
+mContext->connectNodes(tintNode, blurNode);
 
 // evaluate
-mTexture = mContext->evaluate(blurNodeVertical);
+mTexture = mContext->evaluate(blurNode);
 ```
 
 ### CUSTOM EFFECTOR NODE
