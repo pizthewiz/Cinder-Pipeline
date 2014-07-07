@@ -72,94 +72,34 @@ static const std::string NodeOutputPortKeyImage = "image";
 
 class Node : public std::enable_shared_from_this<Node>, public boost::noncopyable {
 public:
-    Node() {
-        mOutputPorts = {
-            NodePort::create(NodeOutputPortKeyImage, NodePortType::FBOImage),
-        };
-    }
+    Node() { mOutputPorts = { NodePort::create(NodeOutputPortKeyImage, NodePortType::FBOImage) }; }
     virtual ~Node() {}
 
     NodeRef getPtr() { return shared_from_this(); }
 
     virtual std::string getName() const = 0;
 
-    void setInputPorts(std::vector<NodePortRef>& ports) {
-        mInputPorts = ports;
-
-        // set default values
-        for (const NodePortRef& port : mInputPorts) {
-            if (!port->hasValueDefault()) {
-                continue;
-            }
-            setValueForInputPortKey(port->getValueDefault(), port->getKey());
-        }
-    }
+    void setInputPorts(std::vector<NodePortRef>& ports);
     inline std::vector<NodePortRef>& getInputPorts() { return mInputPorts; }
     inline std::vector<NodePortRef>& getOutputPorts() { return mOutputPorts; }
 
-    inline std::vector<std::string> getInputPortKeys() {
-        // TODO - replace with some sort of collect
-        std::vector<std::string> keys;
-        for (const NodePortRef& port : mInputPorts) {
-            keys.push_back(port->getKey());
-        }
-        return keys;
-    }
-    inline std::vector<std::string> getInputPortKeysWithType(NodePortType type) {
-        std::vector<std::string> filteredKeys;
-        for (const NodePortRef& port : mInputPorts) {
-            if (port->getType() != type) {
-                continue;
-            }
-            filteredKeys.push_back(port->getKey());
-        }
-        return filteredKeys;
-    }
-    std::vector<std::string> getImageInputPortKeys() {
-        return getInputPortKeysWithType(NodePortType::FBOImage);
-    }
+    std::vector<std::string> getInputPortKeys();
+    std::vector<std::string> getInputPortKeysWithType(NodePortType type);
+    std::vector<std::string> getImageInputPortKeys() { return getInputPortKeysWithType(NodePortType::FBOImage); }
 
-    NodePortRef getInputPortForKey(const std::string& key) {
-        NodePortRef port = nullptr;
-        auto it = std::find_if(mInputPorts.begin(), mInputPorts.end(), [key](const NodePortRef& p){ return p->getKey() == key; });
-        if (it != mInputPorts.end()) {
-            port = *it;
-        }
-        return port;
-    }
-    NodePortRef getOutputPortForKey(const std::string& key) {
-        NodePortRef port = nullptr;
-        auto it = std::find_if(mOutputPorts.begin(), mOutputPorts.end(), [key](const NodePortRef& p){ return p->getKey() == key; });
-        if (it != mOutputPorts.end()) {
-            port = *it;
-        }
-        return port;
-    }
+    NodePortRef getInputPortForKey(const std::string& key);
+    NodePortRef getOutputPortForKey(const std::string& key);
 
+    void setValueForInputPortKey(const boost::any& value, const std::string& key);
     template <typename T>
-    void setValueForInputPortKey(T value, const std::string& key) {
-        // TODO - bail if unchanged, boost::any doesn't implement ==
-
-        mInputPortValueMap[key] = value;
-
-        // value changed handler
-        if (mInputPortValueChangedHandlerMap.find(key) != mInputPortValueChangedHandlerMap.end()) {
-            mInputPortValueChangedHandlerMap[key](key);
-        }
-    }
-    template <typename T>
-	inline T getValueForInputPortKey(const std::string& key) {
-        return boost::any_cast<T>(mInputPortValueMap[key]);
-    }
-    inline bool hasValueForInputPortKey(const std::string& key) {
-        return mInputPortValueMap.find(key) != mInputPortValueMap.end();
-    }
+	inline T getValueForInputPortKey(const std::string& key) { return boost::any_cast<T>(mInputPortValueMap[key]); }
+    inline bool hasValueForInputPortKey(const std::string& key) { return mInputPortValueMap.find(key) != mInputPortValueMap.end(); }
 
     template<typename T, typename Y>
     inline void connectValueForInputPortKeyChangedHandler(const std::string& key, T handler, Y* obj) {
         connectValueForInputPortKeyChangedHandler(key, std::bind(handler, obj, std::placeholders::_1));
     }
-    void connectValueForInputPortKeyChangedHandler(const std::string& key, const std::function<void(const std::string&)>& handler) {
+    void connectValueForInputPortKeyChangedHandler(const std::string& key, const std::function<void (const std::string&)>& handler) {
         mInputPortValueChangedHandlerMap[key] = handler;
     }
 
