@@ -12,8 +12,6 @@
 
 namespace Cinder { namespace Pipeline {
 
-using namespace ci;
-
 typedef std::shared_ptr<class TextureSourceNode> TextureSourceNodeRef;
 
 static const std::string TextureSourceNodeInputPortKeyTexture = "texture";
@@ -21,7 +19,9 @@ static const std::string TextureSourceNodeInputPortKeyTexture = "texture";
 class TextureSourceNode : public SourceNode {
 public:
     TextureSourceNode() {
-        std::vector<NodePortRef> inputPorts = {NodePort::create(TextureSourceNodeInputPortKeyTexture, NodePortType::Texture)};
+        std::vector<NodePortRef> inputPorts = {
+            NodePort::create(TextureSourceNodeInputPortKeyTexture, NodePortType::Texture)
+        };
         setInputPorts(inputPorts);
     }
     ~TextureSourceNode() {}

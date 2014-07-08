@@ -8,11 +8,10 @@ enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Vec4f, File
 ```
 Although multiple data types are supported, being an imaging pipeline, dependencies are only calculated on `NodePortType::FBOImage` ports. Supporting that, all `Node` instances have a fixed single output port `NodeOutputPortKeyImage` of type `NodePortType::FBOImage`.
 
-Currently there are two abstract derived node classes, `SourceNode` and `EffectorNode`. `SourceNode` has a single derived class `TextureSourceNode` that is intended to be used directly and has a `TextureSourceNodeInputPortKeyTexture` port of type `NodePortType::Texture` (internally `gl::TextureRef`) that will bring textures into the pipeline. `EffectorNode` is intended to act as a base for shader-based operators and the input ports can vary based on the specific need.
+Currently there are two abstract derived node classes, `SourceNode` and `EffectorNode`. `SourceNode` has two derived classes `TextureSourceNode` and `FileSourceNode` that will both bring textures into the pipeline. `EffectorNode` is intended to act as a base for shader-based operators and the input ports can vary based on the specific need.
 
 ### USAGE
 ```C++
-
 gl::TextureRef texture = gl::Texture::create(loadImage(loadAsset(RES_LENNA_IMAGE)));
 
 // setup context internals (FBO) at source texture size
