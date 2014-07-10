@@ -55,9 +55,9 @@ public:
 
     inline std::vector<NodeRef> getNodes() const { return mNodes; }
 
-    template<typename NodeT>
-    std::shared_ptr<NodeT> makeNode(NodeT* node) {
-        std::shared_ptr<NodeT> result(node);
+    template<typename T>
+    std::shared_ptr<T> makeNode(T* node) {
+        std::shared_ptr<T> result(node);
 //        result->setContext(shared_from_this());
         mNodes.push_back(result);
         return result;
