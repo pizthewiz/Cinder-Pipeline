@@ -20,7 +20,7 @@ class FileSourceNode : public SourceNode {
 public:
     FileSourceNode() {
         std::vector<NodePortRef> inputPorts = {
-            NodePort::create(FileSourceNodeInputPortKeyImageFilePath, NodePortType::filePath)
+            NodePort::create(FileSourceNodeInputPortKeyImageFilePath, NodePortType::FilePath)
         };
         setInputPorts(inputPorts);
 
