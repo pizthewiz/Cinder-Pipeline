@@ -21,6 +21,7 @@ const std::string FragmentShaderBlend = R"(
 
     #define MODE_SUBTRACT 0
     #define MODE_OVER 1
+    #define MODE_MULTIPLY 2
 
     void main() {
         vec2 position = gl_TexCoord[0].st;
@@ -28,15 +29,19 @@ const std::string FragmentShaderBlend = R"(
         vec4 blendColor = texture2D(blendImage, position);
 
         if (blendOperation == MODE_SUBTRACT) {
+            baseColor.rgb *= baseColor.a;
             blendColor.rgb *= blendColor.a;
             gl_FragColor = max(baseColor - blendColor, vec4(0.0));
         } else if (blendOperation == MODE_OVER) {
             baseColor.rgb *= baseColor.a;
             blendColor.rgb *= blendColor.a;
-            vec4 color = vec4(0.0);
-            color.rgb = blendColor.rgb + baseColor.rgb * (1.0 - blendColor.a);
-            color.a = blendColor.a + baseColor.a * (1.0 - blendColor.a);
-            gl_FragColor = color;
+            gl_FragColor.rgb = blendColor.rgb + baseColor.rgb * (1.0 - blendColor.a);
+            gl_FragColor.a = blendColor.a + baseColor.a * (1.0 - blendColor.a);
+        } else if (blendOperation == MODE_MULTIPLY) {
+            baseColor.rgb *= baseColor.a;
+            blendColor.rgb *= blendColor.a;
+            gl_FragColor.rgb = baseColor.rgb * blendColor.rgb;
+            gl_FragColor.a = 1.0;
         }
     }
 )";
