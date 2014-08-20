@@ -8,6 +8,7 @@
 
 #include "BlendNode.h"
 
+using namespace ci;
 using namespace Cinder::Pipeline;
 
 // http://en.wikipedia.org/wiki/Alpha_compositing

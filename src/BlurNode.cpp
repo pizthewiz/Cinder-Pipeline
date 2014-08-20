@@ -8,6 +8,7 @@
 
 #include "BlurNode.h"
 
+using namespace ci;
 using namespace Cinder::Pipeline;
 
 // (c) Paul Houx, 2014. https://github.com/paulhoux/Cinder-Samples/blob/master/BloomingNeon/assets/blur.frag

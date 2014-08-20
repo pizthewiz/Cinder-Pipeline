@@ -31,8 +31,8 @@ public:
     std::string getName() const { return "Texture Source"; }
 
     void render(const FBOImageRef& outputFBOImage) {
-        gl::TextureRef texture = getValueForInputPortKey<gl::TextureRef>(TextureSourceNodeInputPortKeyTexture);
-        gl::draw(texture);
+        ci::gl::TextureRef texture = getValueForInputPortKey<ci::gl::TextureRef>(TextureSourceNodeInputPortKeyTexture);
+        ci::gl::draw(texture);
     }
 };
 

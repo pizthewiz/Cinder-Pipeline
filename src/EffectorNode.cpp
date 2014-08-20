@@ -10,6 +10,8 @@
 
 namespace Cinder { namespace Pipeline {
 
+using namespace ci;
+
 const std::string EffectorNode::sVertexShaderPassThrough = R"(
     #version 120
     void main() {

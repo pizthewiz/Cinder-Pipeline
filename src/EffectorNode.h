@@ -14,8 +14,6 @@
 
 namespace Cinder { namespace Pipeline {
 
-using namespace ci;
-
 typedef std::shared_ptr<class EffectorNode> EffectorNodeRef;
 
 class EffectorNode : public Node {
@@ -31,11 +29,11 @@ public:
 protected:
     EffectorNode() {}
 
-    void setupShader(const DataSourceRef& vertexShader, const DataSourceRef& fragmentShader);
+    void setupShader(const ci::DataSourceRef& vertexShader, const ci::DataSourceRef& fragmentShader);
     void setupShader(const std::string& vertexShader, const std::string& fragmentShader);
 
     static const std::string sVertexShaderPassThrough;
-    gl::GlslProgRef mShader;
+    ci::gl::GlslProgRef mShader;
 };
 
 }}

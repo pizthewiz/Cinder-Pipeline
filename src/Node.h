@@ -14,30 +14,28 @@
 
 namespace Cinder { namespace Pipeline {
 
-using namespace ci;
-
 typedef std::shared_ptr<class Node> NodeRef;
 typedef std::shared_ptr<class NodePort> NodePortRef;
 typedef std::shared_ptr<class FBOImage> FBOImageRef;
 
 class FBOImage : public std::enable_shared_from_this<FBOImage> {
 public:
-    static FBOImageRef create(const gl::Fbo& fbo, const int attachment) {
+    static FBOImageRef create(const ci::gl::Fbo& fbo, const int attachment) {
         return FBOImageRef(new FBOImage(fbo, attachment))->shared_from_this();
     }
 
-    inline gl::Fbo getFBO() const { return mFBO; }
+    inline ci::gl::Fbo getFBO() const { return mFBO; }
     inline int getAttachment() const { return mAttachment; }
 
-    gl::Texture& getTexture() { return mFBO.getTexture(mAttachment); }
+    ci::gl::Texture& getTexture() { return mFBO.getTexture(mAttachment); }
 
     void bindTexture(const int textureUnit) { mFBO.bindTexture(textureUnit, mAttachment); }
     void unbindTexture() { mFBO.unbindTexture(); }
 
 private:
-    FBOImage(const gl::Fbo& fbo, const int attachment) : mFBO(fbo), mAttachment(attachment) {}
+    FBOImage(const ci::gl::Fbo& fbo, const int attachment) : mFBO(fbo), mAttachment(attachment) {}
 
-    gl::Fbo mFBO;
+    ci::gl::Fbo mFBO;
     int mAttachment;
 };
 

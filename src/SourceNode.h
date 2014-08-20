@@ -12,8 +12,6 @@
 
 namespace Cinder { namespace Pipeline {
 
-using namespace ci;
-
 typedef std::shared_ptr<class SourceNode> SourceNodeRef;
 
 class SourceNode : public Node {

@@ -8,6 +8,7 @@
 
 #include "TintNode.h"
 
+using namespace ci;
 using namespace Cinder::Pipeline;
 
 const std::string FragmentShaderBlur = R"(

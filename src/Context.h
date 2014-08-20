@@ -51,7 +51,7 @@ public:
     ~Context();
 
     // NB - attachments = max FBOImage input ports in any node + 1
-    void setup(const Vec2i size, int attachments = 3);
+    void setup(const ci::Vec2i size, int attachments = 3);
 
     inline std::vector<NodeRef> getNodes() const { return mNodes; }
 
@@ -105,9 +105,9 @@ public:
     BranchRef branchForNode(const NodeRef& node);
 
     std::string serialize();
-    bool serialize(const fs::path& path);
+    bool serialize(const ci::fs::path& path);
 
-    gl::Texture& evaluate(const NodeRef& node);
+    ci::gl::Texture& evaluate(const NodeRef& node);
 
 private:
     Context();
@@ -116,7 +116,7 @@ private:
 
     std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
 
-    gl::Fbo mFBO;
+    ci::gl::Fbo mFBO;
     std::vector<NodeRef> mNodes;
     // {node -> {key -> connection}}
     std::map<NodeRef, std::map<std::string, NodePortConnectionRef>> mInputConnections;

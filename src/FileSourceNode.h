@@ -27,9 +27,9 @@ public:
         // setup texture when file path changes
         connectValueForInputPortKeyChangedHandler(FileSourceNodeInputPortKeyImageFilePath, [&](const std::string key) {
             mTexture = nullptr;
-            fs::path path = getValueForInputPortKey<fs::path>(key);
+            ci::fs::path path = getValueForInputPortKey<ci::fs::path>(key);
             // TODO - check if exists
-            mTexture = gl::Texture::create(loadImage(path));
+            mTexture = ci::gl::Texture::create(ci::loadImage(path));
         });
     }
     ~FileSourceNode() {}
@@ -42,11 +42,11 @@ public:
         if (!mTexture) {
             return;
         }
-        gl::draw(mTexture);
+        ci::gl::draw(mTexture);
     }
 
 private:
-    gl::TextureRef mTexture;
+    ci::gl::TextureRef mTexture;
 };
 
 }}
