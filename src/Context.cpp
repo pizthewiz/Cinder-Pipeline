@@ -252,13 +252,13 @@ std::string Context::serialize() {
                     valuesObject.pushBack(valueObject);
                     break;
                 }
-                case NodePortType::Vec4f: {
+                case NodePortType::Color: {
                     JsonTree valueObject = JsonTree::makeObject(port->getKey());
-                    Vec4f val = n->getValueForInputPortKey<Vec4f>(port->getKey());
-                    valueObject.pushBack(JsonTree("x", val.x));
-                    valueObject.pushBack(JsonTree("y", val.y));
-                    valueObject.pushBack(JsonTree("z", val.z));
-                    valueObject.pushBack(JsonTree("w", val.w));
+                    ColorAf val = n->getValueForInputPortKey<ColorAf>(port->getKey());
+                    valueObject.pushBack(JsonTree("r", val.r));
+                    valueObject.pushBack(JsonTree("g", val.g));
+                    valueObject.pushBack(JsonTree("b", val.b));
+                    valueObject.pushBack(JsonTree("a", val.a));
                     valuesObject.pushBack(valueObject);
                     break;
                 }

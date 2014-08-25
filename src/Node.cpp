@@ -72,7 +72,9 @@ void Node::setValueForInputPortKey(const boost::any& value, const std::string& k
             val = clampValue<int>(value, port->getValueMinimum(), port->getValueMaximum());
             break;
         case NodePortType::Vec2f:
-        case NodePortType::Vec4f:
+            // TODO - ?
+            break;
+        case NodePortType::Color:
             // TODO - ?
             break;
         case NodePortType::FBOImage:

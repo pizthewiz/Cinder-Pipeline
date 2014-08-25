@@ -31,7 +31,7 @@ TintNode::TintNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         // TODO - min and max
-        NodePort::create(TintNodeInputPortKeyColor, NodePortType::Vec4f, Vec4f(1.0, 1.0, 1.0, 1.0)),
+        NodePort::create(TintNodeInputPortKeyColor, NodePortType::Color, ColorAf(1.0, 1.0, 1.0, 1.0)),
         NodePort::create(TintNodeInputPortKeyAmount, NodePortType::Float, 1.0f, 0.0f, 1.0f),
     };
     setInputPorts(inputPorts);
@@ -45,7 +45,7 @@ TintNode::~TintNode() {
 
 void TintNode::render(const FBOImageRef& outputFBOImage) {
     FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(NodeInputPortKeyImage);
-    Vec4f tintColor = getValueForInputPortKey<Vec4f>(TintNodeInputPortKeyColor);
+    ColorAf tintColor = getValueForInputPortKey<ColorAf>(TintNodeInputPortKeyColor);
     float amount = getValueForInputPortKey<float>(TintNodeInputPortKeyAmount);
 
     inputFBOImage->bindTexture(0); {

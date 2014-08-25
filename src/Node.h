@@ -39,7 +39,7 @@ private:
     int mAttachment;
 };
 
-enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Vec4f, FilePath};
+enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Color, FilePath};
 
 class NodePort : public std::enable_shared_from_this<NodePort> {
 public:
