@@ -43,13 +43,7 @@ enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Color, File
 
 class NodePort : public std::enable_shared_from_this<NodePort> {
 public:
-    static NodePortRef create(const std::string& key, const NodePortType type = NodePortType::FBOImage) {
-        return NodePortRef(new NodePort(key, type, "", boost::any(), boost::any(), boost::any()))->shared_from_this();
-    }
-    static NodePortRef create(const std::string& key, const NodePortType type, const std::string& label, boost::any valueDefault) {
-        return NodePortRef(new NodePort(key, type, label, valueDefault, boost::any(), boost::any()))->shared_from_this();
-    }
-    static NodePortRef create(const std::string& key, const NodePortType type, const std::string& label, boost::any valueDefault, boost::any valueMinimum, boost::any valueMaximum) {
+    static NodePortRef create(const std::string& key, const NodePortType type, const std::string& label = "", const boost::any& valueDefault = boost::any(), const boost::any& valueMinimum = boost::any(), const boost::any& valueMaximum = boost::any()) {
         return NodePortRef(new NodePort(key, type, label, valueDefault, valueMinimum, valueMaximum))->shared_from_this();
     }
 
@@ -67,7 +61,7 @@ public:
     inline boost::any getValueMaximum() { return mMaximum; }
 
 private:
-    NodePort(const std::string& key, const NodePortType type, const std::string& label, boost::any def, boost::any min, boost::any max) : mKey(key), mType(type), mLabel(label), mDefault(def), mMinimum(min), mMaximum(max) {}
+    NodePort(const std::string& key, const NodePortType type, const std::string& label, const boost::any& def, const boost::any& min, const boost::any& max) : mKey(key), mType(type), mLabel(label), mDefault(def), mMinimum(min), mMaximum(max) {}
 
     std::string mKey;
     NodePortType mType;
