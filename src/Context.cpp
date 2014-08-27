@@ -148,6 +148,37 @@ void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destination
     connectNodes(sourceNode, NodeOutputPortKeyImage, destinationNode, NodeInputPortKeyImage);
 }
 
+void Context::disconnect(const NodePortConnectionRef& connection) {
+    mInputConnections[connection->getDestinationNode()].erase(connection->getDestinationPortKey());
+
+    std::vector<NodePortConnectionRef> connections = mOutputConnections[connection->getSourceNode()][connection->getSourcePortKey()];
+    connections.erase(std::find(connections.begin(), connections.end(), connection));
+
+    // wipe render stack to force a rebuild
+    mRenderStack.clear();
+}
+
+void Context::disconnectNodes(const NodeRef& sourceNode, const NodePortRef& sourcePort, const NodeRef& destinationNode, const NodePortRef& destinationPort) {
+    NodePortConnectionRef connection = mInputConnections[destinationNode][destinationPort->getKey()];
+
+    // make sure nodes are connected on the expected ports
+    if (!connection || connection->getSourceNode() != sourceNode || connection->getSourcePortKey() != sourcePort->getKey()) {
+        return;
+    }
+
+    disconnect(connection);
+}
+
+void Context::disconnectNodes(const NodeRef& sourceNode, const std::string& sourceNodePortKey, const NodeRef& destinationNode, const std::string& destinationNodePortKey) {
+    NodePortRef sourcePort = sourceNode->getOutputPortForKey(sourceNodePortKey);
+    NodePortRef destinationPort = destinationNode->getInputPortForKey(destinationNodePortKey);
+    disconnectNodes(sourceNode, sourcePort, destinationNode, destinationPort);
+}
+
+void Context::disconnectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode) {
+    disconnectNodes(sourceNode, NodeOutputPortKeyImage, destinationNode, NodeInputPortKeyImage);
+}
+
 #pragma mark -
 
 BranchRef Context::branchForNode(const NodeRef& node) {

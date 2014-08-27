@@ -1,6 +1,5 @@
 
 ### CONTEXT
-- allow node port disconnection
 - allow node removal
 - JSON load
 - prevent cycles on connection

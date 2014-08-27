@@ -66,6 +66,9 @@ public:
     void connectNodes(const NodeRef& sourceNode, const std::string& sourceNodePortKey, const NodeRef& destinationNode, const std::string& destinationNodePortKey);
     void connectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode);
 
+    void disconnectNodes(const NodeRef& sourceNode, const std::string& sourceNodePortKey, const NodeRef& destinationNode, const std::string& destinationNodePortKey);
+    void disconnectNodes(const NodeRef& sourceNode, const NodeRef& destinationNode);
+
     inline std::map<std::string, NodePortConnectionRef> getInputConnectionsForNode(const NodeRef& node) {
         return mInputConnections[node];
     }
@@ -113,6 +116,8 @@ private:
     Context();
 
     void connectNodes(const NodeRef& sourceNode, const NodePortRef& sourceNodePort, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
+    void disconnectNodes(const NodeRef& sourceNode, const NodePortRef& sourceNodePort, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
+    void disconnect(const NodePortConnectionRef& connection);
 
     std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
 
