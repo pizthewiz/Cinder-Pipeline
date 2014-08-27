@@ -149,6 +149,7 @@ void Context::connectNodes(const NodeRef& sourceNode, const NodeRef& destination
 }
 
 void Context::disconnect(const NodePortConnectionRef& connection) {
+    // NB - erase replaces connection with a nullptr, it does not remove the key
     mInputConnections[connection->getDestinationNode()].erase(connection->getDestinationPortKey());
 
     std::vector<NodePortConnectionRef> connections = mOutputConnections[connection->getSourceNode()][connection->getSourcePortKey()];
