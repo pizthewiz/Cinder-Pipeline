@@ -51,8 +51,8 @@ BlendNode::BlendNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         NodePort::create(BlendNodeInputPortKeyBlendImage, NodePortType::FBOImage),
-        // TODO - set possible values
-        NodePort::create(BlendNodeInputPortKeyOperation, NodePortType::Int, static_cast<int>(BlendOperation::Over)),
+        // TODO - use enum type
+        NodePort::create(BlendNodeInputPortKeyOperation, NodePortType::Int, "Mode", static_cast<int>(BlendOperation::Over)),
     };
     setInputPorts(inputPorts);
 

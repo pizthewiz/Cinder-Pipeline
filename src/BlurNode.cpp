@@ -54,8 +54,8 @@ BlurNode::BlurNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         // TODO - would be nice if this were a resolution independent value, a multiplier maybe
-        NodePort::create(BlurNodeInputPortKeyPixelSize, NodePortType::Vec2f),
-        NodePort::create(BlurNodeInputPortKeyAmount, NodePortType::Float, 1.0f, 0.0f, 1.0f),
+        NodePort::create(BlurNodeInputPortKeyPixelSize, NodePortType::Vec2f, "Size"),
+        NodePort::create(BlurNodeInputPortKeyAmount, NodePortType::Float, "Mix", 1.0f, 0.0f, 1.0f),
     };
     setInputPorts(inputPorts);
     // NB - output port "image" of type NodePortType::FBOImage is already present
