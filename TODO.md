@@ -11,9 +11,10 @@
 - add debug mechanism to save image to disk of each step of the render tree
 
 ### NODE
+- pull shader stuff out of Effector node to allow for shader-based generators
 - don't recreate shaders, a single static one might be fine
-- add an enumeration and string port type
-- port label and enum values
+- enum port type
+- port labels
 - validate value type on assignment?
 - if not using ci::gl::GlslProg, consider using [GL_ARB_separate_shader_objects](http://www.opengl.org/registry/specs/ARB/separate_shader_objects.txt) once Cinder supports OpenGL 4.1+. Also see [One Year of Porting](http://www.slideshare.net/slideshow/embed_code/34431339?rel=0#) and [A bit of perspective on OpenGL 4.1 separate programs](http://www.g-truc.net/post-0348.html).
 
