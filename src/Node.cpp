@@ -65,6 +65,10 @@ void Node::setValueForInputPortKey(const boost::any& value, const std::string& k
     NodePortRef port = getInputPortForKey(key);
 
     switch (port->getType()) {
+        case NodePortType::FBOImage:
+        case NodePortType::Texture:
+        case NodePortType::Bool:
+            break;
         case NodePortType::Float:
             val = clampValue<float>(value, port->getValueMinimum(), port->getValueMaximum());
             break;
@@ -77,9 +81,9 @@ void Node::setValueForInputPortKey(const boost::any& value, const std::string& k
         case NodePortType::Color:
             // TODO - ?
             break;
-        case NodePortType::FBOImage:
-        case NodePortType::Texture:
-        case NodePortType::Bool:
+        case NodePortType::Index:
+            // TODO - ?
+            break;
         case NodePortType::FilePath:
         default:
             break;

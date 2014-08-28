@@ -265,6 +265,10 @@ std::string Context::serialize() {
             }
 
             switch (port->getType()) {
+                case NodePortType::FBOImage:
+                case NodePortType::Texture:
+                    // NB - transient values, nothing to serialize
+                    break;
                 case NodePortType::Bool:
                     valuesObject.pushBack(JsonTree(port->getKey(), n->getValueForInputPortKey<bool>(port->getKey())));
                     break;
@@ -272,6 +276,7 @@ std::string Context::serialize() {
                     valuesObject.pushBack(JsonTree(port->getKey(), n->getValueForInputPortKey<float>(port->getKey())));
                     break;
                 case NodePortType::Int:
+                case NodePortType::Index:
                     valuesObject.pushBack(JsonTree(port->getKey(), n->getValueForInputPortKey<int>(port->getKey())));
                     break;
                 case NodePortType::Vec2f: {
@@ -297,9 +302,6 @@ std::string Context::serialize() {
                     valuesObject.pushBack(JsonTree(port->getKey(), path.string()));
                     break;
                 }
-                case NodePortType::FBOImage:
-                case NodePortType::Texture:
-                    // NB - transient values, nothing to serialize
                 default:
                     break;
             }

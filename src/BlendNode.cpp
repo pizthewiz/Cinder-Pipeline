@@ -51,8 +51,7 @@ BlendNode::BlendNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         NodePort::create(BlendNodeInputPortKeyBlendImage, NodePortType::FBOImage),
-        // TODO - use enum type
-        NodePort::create(BlendNodeInputPortKeyOperation, NodePortType::Int, "Mode", static_cast<int>(BlendOperation::Over)),
+        NodePort::create(BlendNodeInputPortKeyOperation, NodePortType::Index, "Mode", static_cast<int>(BlendNode::BlendOperationIndex::Over), {0, 1, 2}, {"Subtract", "Over", "Multiply"}),
     };
     setInputPorts(inputPorts);
 
@@ -65,7 +64,8 @@ BlendNode::~BlendNode() {
 void BlendNode::render(const FBOImageRef& outputFBOImage) {
     FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(NodeInputPortKeyImage);
     FBOImageRef inputFBOImage2 = getValueForInputPortKey<FBOImageRef>(BlendNodeInputPortKeyBlendImage);
-    int blendOperation = getValueForInputPortKey<int>(BlendNodeInputPortKeyOperation);
+    int index = getValueForInputPortKey<int>(BlendNodeInputPortKeyOperation);
+    int blendOperation = getInputPortForKey(BlendNodeInputPortKeyOperation)->getValues().at(index);
 
     inputFBOImage->bindTexture(0); {
         inputFBOImage2->bindTexture(1); {

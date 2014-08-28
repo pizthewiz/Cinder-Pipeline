@@ -39,12 +39,15 @@ private:
     int mAttachment;
 };
 
-enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Color, FilePath};
+enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Color, Index, FilePath};
 
 class NodePort : public std::enable_shared_from_this<NodePort> {
 public:
     static NodePortRef create(const std::string& key, const NodePortType type, const std::string& label = "", const boost::any& valueDefault = boost::any(), const boost::any& valueMinimum = boost::any(), const boost::any& valueMaximum = boost::any()) {
         return NodePortRef(new NodePort(key, type, label, valueDefault, valueMinimum, valueMaximum))->shared_from_this();
+    }
+    static NodePortRef create(const std::string& key, const NodePortType type, const std::string& label, const int defaultValue, const std::vector<int>& values, const std::vector<std::string>& labels) {
+        return NodePortRef(new NodePort(key, type, label, defaultValue, values, labels))->shared_from_this();
     }
 
     inline std::string& getKey() { return mKey; }
@@ -60,8 +63,13 @@ public:
     inline bool hasValueMaximum() { return !mMaximum.empty(); }
     inline boost::any getValueMaximum() { return mMaximum; }
 
+    inline std::vector<int> getValues() { return mValues; }
+    inline bool hasLabels() { return !mValues.empty(); }
+    inline std::vector<std::string> getLabels() { return mLabels; }
+
 private:
     NodePort(const std::string& key, const NodePortType type, const std::string& label, const boost::any& def, const boost::any& min, const boost::any& max) : mKey(key), mType(type), mLabel(label), mDefault(def), mMinimum(min), mMaximum(max) {}
+    NodePort(const std::string& key, const NodePortType type, const std::string& label, const int def, const std::vector<int>& values, const std::vector<std::string>& labels) : mKey(key), mType(type), mLabel(label), mDefault(def), mValues(values), mLabels(labels) {}
 
     std::string mKey;
     NodePortType mType;
@@ -71,6 +79,9 @@ private:
     boost::any mDefault;
     boost::any mMinimum;
     boost::any mMaximum;
+
+    std::vector<int> mValues;
+    std::vector<std::string> mLabels;
 };
 
 static const std::string NodeInputPortKeyImage = "image";

@@ -19,7 +19,7 @@ static const std::string BlendNodeInputPortKeyOperation = "blendOperation";
 
 class BlendNode : public EffectorNode {
 public:
-    enum class BlendOperation {Subtract, Over, Multiply};
+    enum class BlendOperationIndex {Subtract, Over, Multiply};
 
     BlendNode();
     ~BlendNode();
