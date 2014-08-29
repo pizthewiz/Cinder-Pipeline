@@ -127,7 +127,7 @@ void ISFNode::parseShader(const DataSourceRef& vertexShader, const DataSourceRef
 
 void ISFNode::parseShader(const std::string& vertexShader, const std::string& fragmentShader) {
     // naïve extraction of JSON dict, assumed to be in the first C++ comment block
-    std::regex re(".*/\\*(.*)\\*/(.*)", std::regex::extended);
+    std::regex re(".*/\\*(.*)\\*/\\r?\\n?(.*)", std::regex::extended);
     std::smatch match;
     std::regex_search(fragmentShader, match, re);
     if (match.empty()) {
