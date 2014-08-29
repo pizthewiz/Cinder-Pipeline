@@ -10,6 +10,8 @@
 
 #include "EffectorNode.h"
 
+// 💀🚧⚠️ NOT YET FUNCTIONAL!
+
 using namespace Cinder::Pipeline;
 
 typedef std::shared_ptr<class ISFNode> ISFNodeRef;

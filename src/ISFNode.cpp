@@ -11,12 +11,12 @@
 #include "cinder/Json.h"
 #include <regex>
 
+// 💀🚧⚠️ NOT YET FUNCTIONAL!
+
 using namespace ci;
 using namespace Cinder::Pipeline;
 
 const std::string DictKeyDescription = "DESCRIPTION";
-const std::string DictKeyCredit = "CREDIT";
-const std::string DictKeyCategories = "CATEGORIES";
 const std::string DictKeyInputs = "INPUTS";
 const std::string DictKeyInputName = "NAME";
 const std::string DictKeyInputType = "TYPE";
@@ -34,14 +34,6 @@ const std::string DictKeyInputValueMaximum = "MAX";
 const std::string DictKeyInputLabel = "LABEL";
 const std::string DictKeyInputValues = "VALUES";
 const std::string DictKeyInputLabels = "LABELS";
-//PERSISTENT_BUFFERS
-//WIDTH
-//HEIGHT
-//PASSES
-//TARGET
-//IMPORTED
-//NAME
-//PATH
 
 const std::string FragmentShaderTest = R"(
     /*{
@@ -146,32 +138,31 @@ void ISFNode::parseShader(const std::string& vertexShader, const std::string& fr
     JsonTree data;
     try {
         data = JsonTree(match[1]);
-    } catch(...) {
+    } catch (...) {
         // TODO - throw?
         return;
     }
 
-    // quick validation
-    if (!data.hasChild(DictKeyInputs)) {
-        // TODO - throw?
-        return;
-    }
-
-//    if (data.hasChild(DictKeyDescription)) {
-//        ci::app::console() << "description: " << data.getValueForKey(DictKeyDescription) << std::endl;
+//    if (data.hasChild("DESCRIPTION")) {
+//        ci::app::console() << "description: " << data.getValueForKey("DESCRIPTION") << std::endl;
 //    }
 //
-//    if (data.hasChild(DictKeyCredit)) {
-//        ci::app::console() << "credit: " << data.getValueForKey(DictKeyCredit) << std::endl;
+//    if (data.hasChild("CREDIT")) {
+//        ci::app::console() << "credit: " << data.getValueForKey("CREDIT") << std::endl;
 //    }
 //
-//    if (data.hasChild(DictKeyCategories)) {
-//        JsonTree categoryData = data.getChild(DictKeyCategories);
+//    if (data.hasChild("CATEGORIES")) {
+//        JsonTree categoryData = data.getChild("CATEGORIES");
 //        for (size_t idx = 0; idx < categoryData.getChildren().size(); idx++) {
 //            ci::app::console() << "category: " << categoryData.getValueAtIndex(idx) << std::endl;
 //        }
 //    }
 
+    // inputs
+    if (!data.hasChild(DictKeyInputs)) {
+        // TODO - throw?
+        return;
+    }
     for (auto input : data.getChild(DictKeyInputs).getChildren()) {
         if (!input.hasChild(DictKeyInputName) || !input.hasChild(DictKeyInputType)) {
             // TODO - throw?
@@ -269,38 +260,56 @@ void ISFNode::parseShader(const std::string& vertexShader, const std::string& fr
                 ci::app::console() << "max: " << value << std::endl;
             }
         } else if (type == DictKeyInputTypeLong) {
-//            // values
-//            if (!input.hasChild(DictKeyInputValues)) {
-//                // TODO - ?
-//                continue;
-//            }
-//            std::vector<long> values;
-//            JsonTree valuesData = input.getChild(DictKeyInputValues);
-//            for (size_t idx = 0; idx < valuesData.getChildren().size(); idx++) {
-//                values.push_back(valuesData.getValueAtIndex<long>(idx));
-//                ci::app::console() << "value: " << values.back() << std::endl;
-//            }
-//            // labels
-//            if (input.hasChild(DictKeyInputLabels)) {
-//                JsonTree labelsData = input.getChild(DictKeyInputLabels);
-//                if (labelsData.getNumChildren() != values.size()) {
-//                    // TODO - ?
-//                    continue;
-//                }
-//                std::vector<std::string> labels;
-//                for (size_t idx = 0; idx < labelsData.getChildren().size(); idx++) {
-//                    labels.push_back(labelsData.getValueAtIndex(idx));
-//                    ci::app::console() << "label: " << labels.back() << std::endl;
-//                }
-//            }
-//            // default
-//            if (input.hasChild(DictKeyInputValueDefault)) {
-//                long value = input.getValueForKey<float>(DictKeyInputValueDefault);
-//                // TODO - check that it exists in values
-//                ci::app::console() << "default: " << value << std::endl;
-//            }
+            // values
+            if (!input.hasChild(DictKeyInputValues)) {
+                // TODO - ?
+                continue;
+            }
+            std::vector<long> values;
+            JsonTree valuesData = input.getChild(DictKeyInputValues);
+            for (size_t idx = 0; idx < valuesData.getChildren().size(); idx++) {
+                values.push_back(valuesData.getValueAtIndex<long>(idx));
+                ci::app::console() << "value: " << values.back() << std::endl;
+            }
+            // labels
+            if (input.hasChild(DictKeyInputLabels)) {
+                JsonTree labelsData = input.getChild(DictKeyInputLabels);
+                if (labelsData.getNumChildren() != values.size()) {
+                    // TODO - ?
+                    continue;
+                }
+                std::vector<std::string> labels;
+                for (size_t idx = 0; idx < labelsData.getChildren().size(); idx++) {
+                    labels.push_back(labelsData.getValueAtIndex(idx));
+                    ci::app::console() << "label: " << labels.back() << std::endl;
+                }
+            }
+            // default
+            if (input.hasChild(DictKeyInputValueDefault)) {
+                long value = input.getValueForKey<float>(DictKeyInputValueDefault);
+                // TODO - check that it exists in values
+                ci::app::console() << "default: " << value << std::endl;
+            }
         } else if (type == DictKeyInputTypeEvent) {
-//            // TODO - ???
+            // TODO - ???
         }
+    }
+
+    // imported resources - BAIL
+    if (data.hasChild("IMPORTED")) {
+        // TODO - throw?
+        return;
+    }
+
+    // multi-pass rendering - BAIL
+    if (data.hasChild("PASSES")) {
+        // TODO - throw?
+        return;
+    }
+
+    // persistent buffers - BAIL
+    if (data.hasChild("PERSISTENT_BUFFERS")) {
+        // TODO - throw?
+        return;
     }
 }
