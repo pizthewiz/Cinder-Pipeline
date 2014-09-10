@@ -1,6 +1,8 @@
 # Cinder-Pipeline
 `Cinder-Pipeline` is an imaging pipeline to construct and evaluate chained shader-based effectors.
 
+*NOTE* - `Cinder-Pipeline` does not yet support the new [glNext](https://github.com/cinder/Cinder/tree/glNext) Cinder branch.
+
 A `Context` is the container around which nodes are created, connections are made and nodes are evaluated. `Context` evaluates a `Node` by walking up the tree through the node's input connections and constructs a collection of ordered `Branch`.
 A `Node` may have multiple input `NodePort` which are both keyed and typed. Several data types are supported:
 ```C++
