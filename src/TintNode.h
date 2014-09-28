@@ -15,7 +15,7 @@ using namespace Cinder::Pipeline;
 typedef std::shared_ptr<class TintNode> TintNodeRef;
 
 static const std::string TintNodeInputPortKeyColor = "tintColor";
-static const std::string TintNodeInputPortKeyAmount = "amount";
+static const std::string TintNodeInputPortKeyMix = "mix";
 
 class TintNode : public EffectorNode {
 public:
