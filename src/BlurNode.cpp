@@ -17,7 +17,7 @@ const std::string FragmentShaderBlur = R"(
     #version 120
     uniform sampler2D image;
     uniform vec2 pixelSize;
-    uniform float mix;
+    uniform float mixAmount;
 
     void main() {
         vec2 position = gl_TexCoord[0].st;
@@ -46,7 +46,7 @@ const std::string FragmentShaderBlur = R"(
         sum += texture2D(image, position +  +9.0 * pixelSize) * 0.014053461291849008;
         sum += texture2D(image, position + +10.0 * pixelSize) * 0.009167927656011385;
 
-        gl_FragColor = mix(color, sum, mix);
+        gl_FragColor = mix(color, sum, mixAmount);
     }
 )";
 
@@ -55,7 +55,7 @@ BlurNode::BlurNode() {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         // TODO - would be nice if this were a resolution independent value, a multiplier maybe
         NodePort::create(BlurNodeInputPortKeyPixelSize, NodePortType::Vec2f, "Size"),
-        NodePort::create(BlurNodeInputPortKeyMix, NodePortType::Float, "Mix", 1.0f, 0.0f, 1.0f),
+        NodePort::create(BlurNodeInputPortKeyMixAmount, NodePortType::Float, "Mix", 1.0f, 0.0f, 1.0f),
     };
     setInputPorts(inputPorts);
     // NB - output port "image" of type NodePortType::FBOImage is already present
@@ -69,13 +69,13 @@ BlurNode::~BlurNode() {
 void BlurNode::render(const FBOImageRef& outputFBOImage) {
     FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(NodeInputPortKeyImage);
     Vec2f pixelSize = getValueForInputPortKey<Vec2f>(BlurNodeInputPortKeyPixelSize);
-    float mix = getValueForInputPortKey<float>(BlurNodeInputPortKeyMix);
+    float mixAmount = getValueForInputPortKey<float>(BlurNodeInputPortKeyMixAmount);
 
     inputFBOImage->bindTexture(0); {
         mShader->bind(); {
             mShader->uniform(NodeInputPortKeyImage, 0);
             mShader->uniform(BlurNodeInputPortKeyPixelSize, pixelSize);
-            mShader->uniform(BlurNodeInputPortKeyMix, mix);
+            mShader->uniform(BlurNodeInputPortKeyMixAmount, mixAmount);
             gl::drawSolidRect(outputFBOImage->getFBO().getBounds());
         } mShader->unbind();
     } inputFBOImage->unbindTexture();

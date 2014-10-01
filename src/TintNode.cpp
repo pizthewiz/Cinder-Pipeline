@@ -11,11 +11,11 @@
 using namespace ci;
 using namespace Cinder::Pipeline;
 
-const std::string FragmentShaderBlur = R"(
+const std::string FragmentShaderTint = R"(
     #version 120
     uniform sampler2D image;
     uniform vec4 tintColor;
-    uniform float mix;
+    uniform float mixAmount;
 
     // http://en.wikipedia.org/wiki/Luma_(video)
     float lumaRec601(vec4 color) {
@@ -31,20 +31,20 @@ const std::string FragmentShaderBlur = R"(
         vec4 color = texture2D(image, position);
         float y = lumaRec601(color);
         vec4 result = tintColor * vec4(y, y, y, 1.0);
-        gl_FragColor = mix(color, result, mix);
+        gl_FragColor = mix(color, result, mixAmount);
     }
 )";
 
 TintNode::TintNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
-        NodePort::create(TintNodeInputPortKeyColor, NodePortType::Color, "Color", ColorAf(1.0, 1.0, 1.0, 1.0)),
+        NodePort::create(TintNodeInputPortKeyColor, NodePortType::Color, "Color", ColorAf(1.0f, 1.0f, 1.0f, 1.0f)),
         NodePort::create(TintNodeInputPortKeyMix, NodePortType::Float, "Mix", 1.0f, 0.0f, 1.0f),
     };
     setInputPorts(inputPorts);
     // NB - output port "image" of type NodePortType::FBOImage is already present
 
-    setupShader(sVertexShaderPassThrough, FragmentShaderBlur);
+    setupShader(sVertexShaderPassThrough, FragmentShaderTint);
 }
 
 TintNode::~TintNode() {
@@ -53,13 +53,13 @@ TintNode::~TintNode() {
 void TintNode::render(const FBOImageRef& outputFBOImage) {
     FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(NodeInputPortKeyImage);
     ColorAf tintColor = getValueForInputPortKey<ColorAf>(TintNodeInputPortKeyColor);
-    float mix = getValueForInputPortKey<float>(TintNodeInputPortKeyMix);
+    float mixAmount = getValueForInputPortKey<float>(TintNodeInputPortKeyMix);
 
     inputFBOImage->bindTexture(0); {
         mShader->bind(); {
             mShader->uniform(NodeInputPortKeyImage, 0);
             mShader->uniform(TintNodeInputPortKeyColor, tintColor);
-            mShader->uniform(TintNodeInputPortKeyMix, mix);
+            mShader->uniform(TintNodeInputPortKeyMix, mixAmount);
             gl::drawSolidRect(outputFBOImage->getFBO().getBounds());
         } mShader->unbind();
     } inputFBOImage->unbindTexture();
