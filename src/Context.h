@@ -51,7 +51,7 @@ public:
     ~Context();
 
     // NB - attachments = max FBOImage input ports in any node + 1
-    void setup(const ci::Vec2i size, int attachments = 3);
+    void setup(const ci::Vec2i size, GLenum colorFormat = GL_RGBA8, int attachments = 3);
 
     inline std::vector<NodeRef> getNodes() const { return mNodes; }
 

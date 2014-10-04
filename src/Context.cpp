@@ -30,7 +30,7 @@ Context::~Context() {
 
 #pragma mark -
 
-void Context::setup(const Vec2i size, int attachments) {
+void Context::setup(const Vec2i size, GLenum colorFormat, int attachments) {
     // bail if size and attachments are unchanged
     if (mFBO && size == mFBO.getSize() && attachments == mFBO.getFormat().getNumColorBuffers()) {
         return;
@@ -97,6 +97,7 @@ void Context::setup(const Vec2i size, int attachments) {
 //    }
 
     gl::Fbo::Format format;
+    format.setColorInternalFormat(colorFormat);
     format.enableColorBuffer(true, attachments);
     format.enableDepthBuffer(false);
 
