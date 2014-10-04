@@ -42,13 +42,12 @@ const std::string FragmentShaderVibrance = R"(
         vec4 color = texture2D(image, position);
 
         vec3 c = rgb2hsv(color.rgb);
-        // plot:  http://po.st/sUftD7
+        // plot:  http://po.st/oNWbxv
         if (amount >= 0.0) {
             c.y = amount * (sqrt(c.y) - c.y) + c.y;
         } else {
             c.y = amount * (sqrt(1.0 - c.y) - (1.0 - c.y)) + c.y;
         }
-        c.y = clamp(c.y, 0.0, 1.0);
 
         vec4 result;
         result.rgb = hsv2rgb(c);
