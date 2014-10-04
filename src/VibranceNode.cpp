@@ -11,7 +11,8 @@
 using namespace ci;
 using namespace Cinder::Pipeline;
 
-// Vibrance.fs from the ISF file shipped with VDMX5: http://vdmx.vidvox.net/blog/chroma-mask-audio-analysis-visualizations-and-more
+// Vibrance - saturate the desatured values, and desature the saturated values
+// based on Vibrance.fs from VDMX5: http://vdmx.vidvox.net/blog/chroma-mask-audio-analysis-visualizations-and-more
 // NB - unlike Adobe's Vibrance, this does not treat skintones any differently
 const std::string FragmentShaderVibrance = R"(
     #version 120
@@ -41,8 +42,12 @@ const std::string FragmentShaderVibrance = R"(
         vec4 color = texture2D(image, position);
 
         vec3 c = rgb2hsv(color.rgb);
-        // plot:  http://po.st/lVilpL
-        c.y = amount * (sqrt(c.y) - c.y) + c.y;
+        // plot:  http://po.st/sUftD7
+        if (amount >= 0.0) {
+            c.y = amount * (sqrt(c.y) - c.y) + c.y;
+        } else {
+            c.y = amount * (sqrt(1.0 - c.y) - (1.0 - c.y)) + c.y;
+        }
         c.y = clamp(c.y, 0.0, 1.0);
 
         vec4 result;
@@ -56,7 +61,7 @@ const std::string FragmentShaderVibrance = R"(
 VibranceNode::VibranceNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
-        NodePort::create(VibranceNodeInputPortKeyAmount, NodePortType::Float, "Amount", 0.0f, -0.6f, 0.6f),
+        NodePort::create(VibranceNodeInputPortKeyAmount, NodePortType::Float, "Amount", 0.0f, -1.0f, 0.6f),
         NodePort::create(VibranceNodeInputPortKeyMixAmount, NodePortType::Float, "Mix", 1.0f, 0.0f, 1.0f),
     };
     setInputPorts(inputPorts);
