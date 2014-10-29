@@ -356,8 +356,8 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
             return n1->getImageInputPortKeys().size() < n2->getImageInputPortKeys().size();
         });
         unsigned int count = mNodes.at(std::distance(mNodes.begin(), result))->getImageInputPortKeys().size();
-        if (mFBO.getFormat().getNumColorBuffers() < count + 1) {
-            // TODO - something
+        // NB - it appears a single node strand all with single inputs can be evaluated on a single attachment ¯\(°_o)/¯
+        if (count != 1 && mFBO.getFormat().getNumColorBuffers() < count + 1) {
             cinder::app::console() << "ERROR - more attachments (color buffers) required" << std::endl;
         }
 
