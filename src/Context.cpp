@@ -103,14 +103,14 @@ void Context::setup(const ivec2 size, GLenum colorFormat, int attachmentCount) {
     }
     mFBO = gl::Fbo::create(size.x, size.y, format);
 
-//    GLenum buffers[attachmentCount];
-//    for (unsigned int idx = 0; idx < attachmentCount; idx++) {
-//        buffers[idx] = GL_COLOR_ATTACHMENT0 + idx;
-//    }
-//    glDrawBuffers(attachmentCount, buffers);
-//    gl::ScopedFramebuffer scopedFBO(mFBO);
-//    gl::ScopedViewport scopedViewport(ivec2(0), mFBO->getSize());
-//    gl::clear();
+    GLenum buffers[attachmentCount];
+    for (unsigned int idx = 0; idx < attachmentCount; idx++) {
+        buffers[idx] = GL_COLOR_ATTACHMENT0 + idx;
+    }
+    glDrawBuffers(attachmentCount, buffers);
+    gl::ScopedFramebuffer scopedFBO(mFBO);
+    gl::ScopedViewport scopedViewport(ivec2(0), mFBO->getSize());
+    gl::clear(ColorAf(0.0, 0.0, 0.0, 0.0));
 
     mColorFormat = colorFormat;
     mAttachmentCount = attachmentCount;
