@@ -281,7 +281,7 @@ std::string Context::serialize() {
                 case NodePortType::Index:
                     valuesObject.pushBack(JsonTree(port->getKey(), n->getValueForInputPortKey<int>(port->getKey())));
                     break;
-                case NodePortType::Vec2f: {
+                case NodePortType::Vec2: {
                     JsonTree valueObject = JsonTree::makeObject(port->getKey());
                     vec2 val = n->getValueForInputPortKey<vec2>(port->getKey());
                     valueObject.pushBack(JsonTree("x", val.x));
