@@ -3,7 +3,7 @@
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 19 Apr 2014.
-//  Copyright 2014 Chorded Constructions. All rights reserved.
+//  Copyright 2014-2015 Chorded Constructions. All rights reserved.
 //
 
 #pragma once
@@ -50,8 +50,8 @@ public:
     static ContextRef create();
     ~Context();
 
-    // NB - attachments = max FBOImage input ports in any node + 1
-    void setup(const ci::Vec2i size, GLenum colorFormat = GL_RGBA8, int attachments = 3);
+    // NB - attachmentCount = max FBOImage input ports in any node + 1
+    void setup(const ci::ivec2 size, GLenum colorFormat = GL_RGBA8, int attachmentCount = 3);
 
     inline std::vector<NodeRef> getNodes() const { return mNodes; }
 
@@ -110,7 +110,7 @@ public:
     std::string serialize();
     bool serialize(const ci::fs::path& path);
 
-    ci::gl::Texture& evaluate(const NodeRef& node);
+    ci::gl::Texture2dRef evaluate(const NodeRef& node);
 
 private:
     Context();
@@ -121,7 +121,9 @@ private:
 
     std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
 
-    ci::gl::Fbo mFBO;
+    ci::gl::FboRef mFBO;
+    GLenum mColorFormat;
+    int mAttachmentCount;
     std::vector<NodeRef> mNodes;
     // {node -> {key -> connection}}
     std::map<NodeRef, std::map<std::string, NodePortConnectionRef>> mInputConnections;

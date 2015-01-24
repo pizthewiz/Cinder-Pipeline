@@ -3,7 +3,7 @@
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 19 Jun 2014.
-//  Copyright 2014 Chorded Constructions. All rights reserved.
+//  Copyright 2014-2015 Chorded Constructions. All rights reserved.
 //
 
 #include "TintNode.h"
@@ -12,10 +12,14 @@ using namespace ci;
 using namespace Cinder::Pipeline;
 
 const std::string FragmentShaderTint = R"(
-    #version 120
+    #version 150
     uniform sampler2D image;
     uniform vec4 tintColor;
     uniform float mixAmount;
+
+    in vec2 TexCoord0;
+
+    out vec4 FragColor;
 
     // http://en.wikipedia.org/wiki/Luma_(video)
     float lumaRec601(vec4 color) {
@@ -27,11 +31,10 @@ const std::string FragmentShaderTint = R"(
     }
 
     void main() {
-        vec2 position = gl_TexCoord[0].xy;
-        vec4 color = texture2D(image, position);
+        vec4 color = texture(image, TexCoord0.st);
         float y = lumaRec601(color);
         vec4 result = tintColor * vec4(y, y, y, 1.0);
-        gl_FragColor = mix(color, result, mixAmount);
+        FragColor = mix(color, result, mixAmount);
     }
 )";
 
@@ -55,12 +58,11 @@ void TintNode::render(const FBOImageRef& outputFBOImage) {
     ColorAf tintColor = getValueForInputPortKey<ColorAf>(TintNodeInputPortKeyColor);
     float mixAmount = getValueForInputPortKey<float>(TintNodeInputPortKeyMix);
 
-    inputFBOImage->bindTexture(0); {
-        mShader->bind(); {
-            mShader->uniform(NodeInputPortKeyImage, 0);
-            mShader->uniform(TintNodeInputPortKeyColor, tintColor);
-            mShader->uniform(TintNodeInputPortKeyMix, mixAmount);
-            gl::drawSolidRect(outputFBOImage->getFBO().getBounds());
-        } mShader->unbind();
-    } inputFBOImage->unbindTexture();
+    gl::ScopedTextureBind texture(inputFBOImage->getTexture(), 0);
+    gl::ScopedGlslProg shader(mShader);
+
+    mShader->uniform(NodeInputPortKeyImage, 0);
+    mShader->uniform(TintNodeInputPortKeyColor, tintColor);
+    mShader->uniform(TintNodeInputPortKeyMix, mixAmount);
+    gl::drawSolidRect(outputFBOImage->getFBO()->getBounds());
 }
