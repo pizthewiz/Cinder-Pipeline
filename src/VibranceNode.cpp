@@ -3,7 +3,7 @@
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 28 Sept 2014.
-//  Copyright 2014 Chorded Constructions. All rights reserved.
+//  Copyright 2014-2015 Chorded Constructions. All rights reserved.
 //
 
 #include "VibranceNode.h"
@@ -15,10 +15,14 @@ using namespace Cinder::Pipeline;
 // based on Vibrance.fs from VDMX5: http://vdmx.vidvox.net/blog/chroma-mask-audio-analysis-visualizations-and-more
 // NB - unlike Adobe's Vibrance, this does not treat skintones any differently
 const std::string FragmentShaderVibrance = R"(
-    #version 120
+    #version 150
     uniform sampler2D image;
     uniform float amount;
     uniform float mixAmount;
+
+    in vec2 TexCoord0;
+
+    out vec4 FragColor;
 
     // http://gamedev.stackexchange.com/a/59808
     vec3 rgb2hsv(vec3 c) {
@@ -38,8 +42,7 @@ const std::string FragmentShaderVibrance = R"(
     }
 
     void main() {
-        vec2 position = gl_TexCoord[0].xy;
-        vec4 color = texture2D(image, position);
+        vec4 color = texture(image, TexCoord0.st);
 
         vec3 c = rgb2hsv(color.rgb);
         // plot:  http://po.st/oNWbxv
@@ -53,7 +56,7 @@ const std::string FragmentShaderVibrance = R"(
         result.rgb = hsv2rgb(c);
         result.a = color.a;
 
-        gl_FragColor = mix(color, result, mixAmount);
+        FragColor = mix(color, result, mixAmount);
     }
 )";
 
@@ -77,12 +80,11 @@ void VibranceNode::render(const FBOImageRef& outputFBOImage) {
     float amount = getValueForInputPortKey<float>(VibranceNodeInputPortKeyAmount);
     float mixAmount = getValueForInputPortKey<float>(VibranceNodeInputPortKeyMixAmount);
 
-    inputFBOImage->bindTexture(0); {
-        mShader->bind(); {
-            mShader->uniform(NodeInputPortKeyImage, 0);
-            mShader->uniform(VibranceNodeInputPortKeyAmount, amount);
-            mShader->uniform(VibranceNodeInputPortKeyMixAmount, mixAmount);
-            gl::drawSolidRect(outputFBOImage->getFBO().getBounds());
-        } mShader->unbind();
-    } inputFBOImage->unbindTexture();
+    gl::ScopedTextureBind texture(inputFBOImage->getTexture(), 0);
+    gl::ScopedGlslProg shader(mShader);
+
+    mShader->uniform(NodeInputPortKeyImage, 0);
+    mShader->uniform(VibranceNodeInputPortKeyAmount, amount);
+    mShader->uniform(VibranceNodeInputPortKeyMixAmount, mixAmount);
+    gl::drawSolidRect(outputFBOImage->getFBO()->getBounds());
 }

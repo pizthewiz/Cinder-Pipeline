@@ -3,7 +3,7 @@
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 24 Apr 2014.
-//  Copyright 2014 Chorded Constructions. All rights reserved.
+//  Copyright 2014-2015 Chorded Constructions. All rights reserved.
 //
 
 #include "BlendNode.h"
@@ -15,34 +15,37 @@ using namespace Cinder::Pipeline;
 // http://cairographics.org/operators/
 // http://www.svgopen.org/2005/papers/abstractsvgopen/
 const std::string FragmentShaderBlend = R"(
-    #version 120
+    #version 150
     uniform sampler2D image;
     uniform sampler2D blendImage;
     uniform int blendOperation;
+
+    in vec2 TexCoord0;
+
+    out vec4 FragColor;
 
     #define MODE_SUBTRACT 0
     #define MODE_OVER 1
     #define MODE_MULTIPLY 2
 
     void main() {
-        vec2 position = gl_TexCoord[0].st;
-        vec4 baseColor = texture2D(image, position);
-        vec4 blendColor = texture2D(blendImage, position);
+        vec4 baseColor = texture(image, TexCoord0.st);
+        vec4 blendColor = texture(blendImage, TexCoord0.st);
 
         if (blendOperation == MODE_SUBTRACT) {
             baseColor.rgb *= baseColor.a;
             blendColor.rgb *= blendColor.a;
-            gl_FragColor = max(baseColor - blendColor, vec4(0.0));
+            FragColor = max(baseColor - blendColor, vec4(0.0));
         } else if (blendOperation == MODE_OVER) {
             baseColor.rgb *= baseColor.a;
             blendColor.rgb *= blendColor.a;
-            gl_FragColor.rgb = blendColor.rgb + baseColor.rgb * (1.0 - blendColor.a);
-            gl_FragColor.a = blendColor.a + baseColor.a * (1.0 - blendColor.a);
+            FragColor.rgb = blendColor.rgb + baseColor.rgb * (1.0 - blendColor.a);
+            FragColor.a = blendColor.a + baseColor.a * (1.0 - blendColor.a);
         } else if (blendOperation == MODE_MULTIPLY) {
             baseColor.rgb *= baseColor.a;
             blendColor.rgb *= blendColor.a;
-            gl_FragColor.rgb = baseColor.rgb * blendColor.rgb;
-            gl_FragColor.a = 1.0;
+            FragColor.rgb = baseColor.rgb * blendColor.rgb;
+            FragColor.a = 1.0;
         }
     }
 )";
@@ -67,14 +70,12 @@ void BlendNode::render(const FBOImageRef& outputFBOImage) {
     int index = getValueForInputPortKey<int>(BlendNodeInputPortKeyOperation);
     int blendOperation = getInputPortForKey(BlendNodeInputPortKeyOperation)->getValues().at(index);
 
-    inputFBOImage->bindTexture(0); {
-        inputFBOImage2->bindTexture(1); {
-            mShader->bind(); {
-                mShader->uniform(NodeInputPortKeyImage, 0);
-                mShader->uniform(BlendNodeInputPortKeyBlendImage, 1);
-                mShader->uniform(BlendNodeInputPortKeyOperation, blendOperation);
-                gl::drawSolidRect(outputFBOImage->getFBO().getBounds());
-            } mShader->unbind();
-        } inputFBOImage2->unbindTexture();
-    } inputFBOImage->unbindTexture();
+    gl::ScopedTextureBind texture(inputFBOImage->getTexture(), 0);
+    gl::ScopedTextureBind texture2(inputFBOImage2->getTexture(), 1);
+    gl::ScopedGlslProg shader(mShader);
+
+    mShader->uniform(NodeInputPortKeyImage, 0);
+    mShader->uniform(BlendNodeInputPortKeyBlendImage, 1);
+    mShader->uniform(BlendNodeInputPortKeyOperation, blendOperation);
+    gl::drawSolidRect(outputFBOImage->getFBO()->getBounds());
 }
