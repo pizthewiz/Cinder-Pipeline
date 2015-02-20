@@ -1,5 +1,6 @@
 
 ### CONTEXT
+- overload >> to allow connections, just to the default "image" port. Maybe node ("image")->("maskImage") otherNode
 - allow node removal
 - investigate [cereal](https://github.com/USCiLab/cereal) for serialization and deserialization
 - load from JSON
@@ -28,7 +29,6 @@
 - support static image resources "IMPORTED"
 
 ### GENERAL
-- upgrade to [glNext](cinder/Cinder/tree/glNext)/modern GL
 - include a sample application
 - sprinkle in some [`glGetError`](https://www.opengl.org/wiki/GLAPI/glGetError) use?
 - investigate the [Boost Graph Library](http://www.boost.org/doc/libs/1_55_0/libs/graph/doc/index.html)
