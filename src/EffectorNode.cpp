@@ -3,7 +3,7 @@
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 19 May 2014.
-//  Copyright 2014 Chorded Constructions. All rights reserved.
+//  Copyright 2014-2015 Chorded Constructions. All rights reserved.
 //
 
 #include "EffectorNode.h"
@@ -13,10 +13,17 @@ namespace Cinder { namespace Pipeline {
 using namespace ci;
 
 const std::string EffectorNode::sVertexShaderPassThrough = R"(
-    #version 120
+    #version 150
+    uniform mat4 ciModelViewProjection;
+
+    in vec4 ciPosition;
+    in vec4 ciTexCoord0;
+
+    out highp vec2 TexCoord0;
+
     void main() {
-        gl_TexCoord[0] = gl_MultiTexCoord0;
-        gl_Position = ftransform();
+        TexCoord0 = ciTexCoord0.st;
+        gl_Position = ciModelViewProjection * ciPosition;
     }
 )";
 

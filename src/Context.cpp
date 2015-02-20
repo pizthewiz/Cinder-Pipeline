@@ -3,7 +3,7 @@
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 19 Apr 2014.
-//  Copyright 2014 Chorded Constructions. All rights reserved.
+//  Copyright 2014-2015 Chorded Constructions. All rights reserved.
 //
 
 #include "Context.h"
@@ -30,9 +30,9 @@ Context::~Context() {
 
 #pragma mark -
 
-void Context::setup(const Vec2i size, GLenum colorFormat, int attachments) {
+void Context::setup(const ivec2 size, GLenum colorFormat, int attachmentCount) {
     // bail if size and attachments are unchanged
-    if (mFBO && size == mFBO.getSize() && attachments == mFBO.getFormat().getNumColorBuffers()) {
+    if (mFBO && size == mFBO->getSize() && colorFormat == mColorFormat && attachmentCount == mAttachmentCount) {
         return;
     }
 
@@ -46,12 +46,12 @@ void Context::setup(const Vec2i size, GLenum colorFormat, int attachments) {
     const char* shadingLanguageVersion = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
     cinder::app::console() << "GL_SHADING_LANGUAGE_VERSION: " << shadingLanguageVersion << std::endl;
 
-    std::string extensionsString = std::string(reinterpret_cast<const char*>(glGetString(GL_EXTENSIONS)));
-    std::vector<std::string> extensions = split(extensionsString, " ");
-    extensions.erase(std::remove_if(extensions.begin(), extensions.end(), [](const std::string& s){ return s.empty(); }));
     cinder::app::console() << "GL_EXTENSIONS: " << std::endl;
-    for (const std::string& e : extensions) {
-        cinder::app::console() << " " << e << std::endl;
+    GLint extensionCount = 0;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+    for (GLint idx = 0; idx < extensionCount; idx++) {
+        std::string extension(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, idx)));
+        cinder::app::console() << " " << extension << std::endl;
     }
 
     GLint texSize;
@@ -65,6 +65,7 @@ void Context::setup(const Vec2i size, GLenum colorFormat, int attachments) {
     cinder::app::console() << "GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: " << texSize << std::endl;
     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &texSize);
     cinder::app::console() << "GL_MAX_COLOR_ATTACHMENTS: " << texSize << std::endl;
+    
     cinder::app::console() << std::string(13, '-') << std::endl;
 #endif
 
@@ -97,22 +98,22 @@ void Context::setup(const Vec2i size, GLenum colorFormat, int attachments) {
 //    }
 
     gl::Fbo::Format format;
-    format.setColorInternalFormat(colorFormat);
-    format.enableColorBuffer(true, attachments);
-    format.enableDepthBuffer(false);
+    for (unsigned int idx = 0; idx < attachmentCount; idx++) {
+        format.attachment(GL_COLOR_ATTACHMENT0 + idx, gl::Texture2d::create(size.x, size.y, gl::Texture2d::Format().internalFormat(colorFormat)));
+    }
+    mFBO = gl::Fbo::create(size.x, size.y, format);
 
-    mFBO = gl::Fbo(size.x, size.y, format);
-    mFBO.bindFramebuffer(); {
-        GLenum buffers[attachments];
-        for (unsigned int idx = 0; idx < attachments; idx++) {
-            buffers[idx] = GL_COLOR_ATTACHMENT0 + idx;
-        }
-        glDrawBuffers(attachments, buffers);
-        Area viewport = gl::getViewport();
-        gl::setViewport(mFBO.getBounds());
-        gl::clear();
-        gl::setViewport(viewport);
-    } mFBO.unbindFramebuffer();
+    GLenum buffers[attachmentCount];
+    for (unsigned int idx = 0; idx < attachmentCount; idx++) {
+        buffers[idx] = GL_COLOR_ATTACHMENT0 + idx;
+    }
+    glDrawBuffers(attachmentCount, buffers);
+    gl::ScopedFramebuffer scopedFBO(mFBO);
+    gl::ScopedViewport scopedViewport(ivec2(0), mFBO->getSize());
+    gl::clear(ColorAf(0.0, 0.0, 0.0, 0.0));
+
+    mColorFormat = colorFormat;
+    mAttachmentCount = attachmentCount;
 }
 
 #pragma mark - CONNECTIONS
@@ -280,9 +281,9 @@ std::string Context::serialize() {
                 case NodePortType::Index:
                     valuesObject.pushBack(JsonTree(port->getKey(), n->getValueForInputPortKey<int>(port->getKey())));
                     break;
-                case NodePortType::Vec2f: {
+                case NodePortType::Vec2: {
                     JsonTree valueObject = JsonTree::makeObject(port->getKey());
-                    Vec2f val = n->getValueForInputPortKey<Vec2f>(port->getKey());
+                    vec2 val = n->getValueForInputPortKey<vec2>(port->getKey());
                     valueObject.pushBack(JsonTree("x", val.x));
                     valueObject.pushBack(JsonTree("y", val.y));
                     valuesObject.pushBack(valueObject);
@@ -342,13 +343,13 @@ bool Context::serialize(const fs::path& path) {
 
     outfile << serialize();
     outfile.close();
-    
+
     return true;
 }
 
 #pragma mark -
 
-gl::Texture& Context::evaluate(const NodeRef& node) {
+gl::Texture2dRef Context::evaluate(const NodeRef& node) {
     // rebuild render stack (flush cache) if the stack is empty or the node changes (cache key)
     if (mRenderStack.size() == 0 || node != mRenderNode) {
         // verify there are enough attachments
@@ -357,7 +358,7 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
         });
         unsigned int count = mNodes.at(std::distance(mNodes.begin(), result))->getImageInputPortKeys().size();
         // NB - it appears a single node strand all with single inputs can be evaluated on a single attachment ¯\(°_o)/¯
-        if (count != 1 && mFBO.getFormat().getNumColorBuffers() < count + 1) {
+        if (count != 1 && mAttachmentCount < count + 1) {
             cinder::app::console() << "ERROR - more attachments (color buffers) required" << std::endl;
         }
 
@@ -376,94 +377,89 @@ gl::Texture& Context::evaluate(const NodeRef& node) {
     }
 
     // render branches
-    unsigned int outAttachment = 0;
+    GLenum outAttachment = 0;
 
+    gl::ScopedViewport viewport(ivec2(0), mFBO->getSize());
+    gl::ScopedFramebuffer fbo(mFBO);
+    gl::ScopedMatrices matricies;
+
+    gl::setMatricesWindow(mFBO->getSize());
     gl::color(Color::white());
 
-    Area viewport = gl::getViewport();
-    gl::setViewport(mFBO.getBounds());
-    mFBO.bindFramebuffer(); {
-        gl::pushMatrices(); {
-            gl::setMatricesWindow(mFBO.getSize(), false);
+    std::vector<GLenum> availableAttachments;
+    for (unsigned int idx = 0; idx < mAttachmentCount; idx++) {
+        availableAttachments.push_back(GL_COLOR_ATTACHMENT0 + idx);
+    }
+    std::map<NodeRef, GLenum> attachmentsMap;
 
-            // int instead of GLenum for Cinder's FBO bindTexture/getTexture
-            std::vector<int> availableAttachments;
-            for (unsigned int idx = 0; idx < mFBO.getFormat().getNumColorBuffers(); idx++) {
-                availableAttachments.push_back(idx);
-            }
-            std::map<NodeRef, int> attachmentsMap;
+    for (const BranchRef& b : mRenderStack) {
+        size_t attachmentIndex = 0;
+        outAttachment = availableAttachments.at(attachmentIndex);
+        GLenum inAttachment = 0;
 
-            for (const BranchRef& b : mRenderStack) {
-                size_t attachmentIndex = 0;
-                outAttachment = availableAttachments.at(attachmentIndex);
-                int inAttachment = -1;
+        for (size_t nodeIdx = 0; nodeIdx < b->getNodes().size(); nodeIdx++) {
+            // TODO - hoist draw buffer assignment
+            NodeRef n = b->getNodes().at(nodeIdx);
+            SourceNodeRef s = std::dynamic_pointer_cast<SourceNode>(n);
+            if (s) {
+                glDrawBuffer(outAttachment);
 
-                for (size_t nodeIdx = 0; nodeIdx < b->getNodes().size(); nodeIdx++) {
-                    // TODO - hoist draw buffer assignment
-                    NodeRef n = b->getNodes().at(nodeIdx);
-                    SourceNodeRef s = std::dynamic_pointer_cast<SourceNode>(n);
-                    if (s) {
-                        glDrawBuffer(GL_COLOR_ATTACHMENT0 + outAttachment);
+                FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
+                s->render(outputFBOImage);
+
+                inAttachment = outAttachment;
+            } else {
+                EffectorNodeRef e = std::dynamic_pointer_cast<EffectorNode>(n);
+                if (e) {
+                    std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
+                    if (connections.size() == 1) {
+                        NodePortConnectionRef c = connections.at(0);
+                        // grab attachment from map when appropriate
+                        if (inAttachment == 0) {
+                            inAttachment = attachmentsMap[c->getSourceNode()];
+                            attachmentsMap.erase(c->getSourceNode());
+                            availableAttachments.push_back(inAttachment);
+                        }
+                        FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
+                        e->setValueForInputPortKey(inputFBOImage, c->getDestinationPortKey());
+
+                        attachmentIndex = (attachmentIndex + 1) % availableAttachments.size();
+                        outAttachment = availableAttachments.at(attachmentIndex);
+                        glDrawBuffer(outAttachment);
 
                         FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
-                        s->render(outputFBOImage);
+                        e->render(outputFBOImage);
 
                         inAttachment = outAttachment;
-                    } else {
-                        EffectorNodeRef e = std::dynamic_pointer_cast<EffectorNode>(n);
-                        if (e) {
-                            std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
-                            if (connections.size() == 1) {
-                                NodePortConnectionRef c = connections.at(0);
-                                // grab attachment from map when appropriate
-                                if (inAttachment == -1) {
-                                    inAttachment = attachmentsMap[c->getSourceNode()];
-                                    attachmentsMap.erase(c->getSourceNode());
-                                    availableAttachments.push_back(inAttachment);
-                                }
-                                FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
-                                e->setValueForInputPortKey(inputFBOImage, c->getDestinationPortKey());
+                    } else if (connections.size() > 1) {
+                        for (const NodePortConnectionRef& c : connections) {
+                            inAttachment = attachmentsMap[c->getSourceNode()];
+                            attachmentsMap.erase(c->getSourceNode());
+                            availableAttachments.push_back(inAttachment);
 
-                                attachmentIndex = (attachmentIndex + 1) % availableAttachments.size();
-                                outAttachment = availableAttachments.at(attachmentIndex);
-                                glDrawBuffer(GL_COLOR_ATTACHMENT0 + outAttachment);
-
-                                FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
-                                e->render(outputFBOImage);
-
-                                inAttachment = outAttachment;
-                            } else if (connections.size() > 1) {
-                                for (const NodePortConnectionRef& c : connections) {
-                                    inAttachment = attachmentsMap[c->getSourceNode()];
-                                    attachmentsMap.erase(c->getSourceNode());
-                                    availableAttachments.push_back(inAttachment);
-
-                                    FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
-                                    e->setValueForInputPortKey(inputFBOImage, c->getDestinationPortKey());
-                                }
-
-                                glDrawBuffer(GL_COLOR_ATTACHMENT0 + outAttachment);
-
-                                FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
-                                e->render(outputFBOImage);
-                                
-                                inAttachment = outAttachment;
-                            }
+                            FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
+                            e->setValueForInputPortKey(inputFBOImage, c->getDestinationPortKey());
                         }
-                    }
 
-                    // stash output attachment and accompanying node when branch concludes
-                    if (nodeIdx == b->getNodes().size() - 1) {
-                        attachmentsMap[n] = outAttachment;
-                        availableAttachments.erase(std::find(availableAttachments.begin(), availableAttachments.end(), outAttachment));
+                        glDrawBuffer(outAttachment);
+
+                        FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
+                        e->render(outputFBOImage);
+                        
+                        inAttachment = outAttachment;
                     }
                 }
             }
-        } gl::popMatrices();
-    } mFBO.unbindFramebuffer();
-    gl::setViewport(viewport);
 
-    return mFBO.getTexture(outAttachment);
+            // stash output attachment and accompanying node when branch concludes
+            if (nodeIdx == b->getNodes().size() - 1) {
+                attachmentsMap[n] = outAttachment;
+                availableAttachments.erase(std::find(availableAttachments.begin(), availableAttachments.end(), outAttachment));
+            }
+        }
+    }
+
+    return std::static_pointer_cast<gl::Texture2d>(mFBO->getTexture(outAttachment));
 }
 
 #pragma mark - PRIVATE

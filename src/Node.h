@@ -3,7 +3,7 @@
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 19 Apr 2014.
-//  Copyright 2014 Chorded Constructions. All rights reserved.
+//  Copyright 2014-2015 Chorded Constructions. All rights reserved.
 //
 
 #pragma once
@@ -20,26 +20,23 @@ typedef std::shared_ptr<class FBOImage> FBOImageRef;
 
 class FBOImage : public std::enable_shared_from_this<FBOImage> {
 public:
-    static FBOImageRef create(const ci::gl::Fbo& fbo, const int attachment) {
+    static FBOImageRef create(const ci::gl::FboRef& fbo, const GLenum attachment) {
         return FBOImageRef(new FBOImage(fbo, attachment))->shared_from_this();
     }
 
-    inline ci::gl::Fbo getFBO() const { return mFBO; }
-    inline int getAttachment() const { return mAttachment; }
+    inline ci::gl::FboRef getFBO() const { return mFBO; }
+    inline GLenum getAttachment() const { return mAttachment; }
 
-    ci::gl::Texture& getTexture() { return mFBO.getTexture(mAttachment); }
-
-    void bindTexture(const int textureUnit) { mFBO.bindTexture(textureUnit, mAttachment); }
-    void unbindTexture() { mFBO.unbindTexture(); }
+    ci::gl::TextureBaseRef getTexture() { return mFBO->getTexture(mAttachment); }
 
 private:
-    FBOImage(const ci::gl::Fbo& fbo, const int attachment) : mFBO(fbo), mAttachment(attachment) {}
+    FBOImage(const ci::gl::FboRef& fbo, const GLenum attachment) : mFBO(fbo), mAttachment(attachment) {}
 
-    ci::gl::Fbo mFBO;
-    int mAttachment;
+    ci::gl::FboRef mFBO;
+    GLenum mAttachment;
 };
 
-enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Color, Index, FilePath};
+enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2, Color, Index, FilePath};
 
 class NodePort : public std::enable_shared_from_this<NodePort> {
 public:

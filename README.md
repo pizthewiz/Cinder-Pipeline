@@ -1,12 +1,12 @@
 # Cinder-Pipeline
 `Cinder-Pipeline` is an imaging pipeline to construct and evaluate chained shader-based effectors.
 
-*NOTE* - `Cinder-Pipeline` does not yet support the new [glNext](https://github.com/cinder/Cinder/tree/glNext) Cinder branch.
+*NOTE* - `Cinder-Pipeline` is to be used with the heir apparent [glNext](https://github.com/cinder/Cinder/tree/glNext) Cinder branch.
 
 A `Context` is the container around which nodes are created, connections are made and nodes are evaluated. `Context` evaluates a `Node` by walking up the tree through the node's input connections and constructs a collection of ordered `Branch`.
 A `Node` may have multiple input `NodePort` which are both keyed and typed. Several data types are supported:
 ```C++
-enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2f, Color, Index, FilePath};
+enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2, Color, Index, FilePath};
 ```
 Although multiple data types are supported, being an imaging pipeline, dependencies are only calculated on `NodePortType::FBOImage` ports. Supporting that, all `Node` instances have a fixed single output port `NodeOutputPortKeyImage` of type `NodePortType::FBOImage`.
 
@@ -26,13 +26,13 @@ sourceNode->setValueForInputPortKey(texture, TextureSourceNodeInputPortKeyTextur
 
 // create a color tint node and set to red
 TintNodeRef tintNode = mContext->makeNode(new TintNode);
-Vec4f color = Vec4f(1.0f, 0.0f, 0.0f, 1.0f);
+ColorAf color = ColorAf(1.0f, 0.0f, 0.0f, 1.0f);
 tintNode->setValueForInputPortKey(tintColor, TintNodeInputPortKeyColor);
 mContext->connectNodes(sourceNode, tintNode);
 
 // create horizontal blur, set size and connect to source
 BlurNodeRef blurNode = mContext->makeNode(new BlurNode);
-Vec2f size = Vec2f(1.0f/texture->getWidth(), 0.0f);
+vec2 size = vec2(1.0f/texture->getWidth(), 0.0f);
 blurNode->setValueForInputPortKey(size, BlurNodeInputPortKeyPixelSize);
 mContext->connectNodes(tintNode, blurNode);
 
