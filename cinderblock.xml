@@ -8,7 +8,6 @@
     summary="Chain and evaluate shader-based image effectors"
     url="https://github.com/pizthewiz/Cinder-Pipeline"
     >
-    <supports os="macosx" />
     <header>include/Cinder-Pipeline.h</header>
     <header>include/Node.h</header>
     <source>src/Node.cpp</source>
