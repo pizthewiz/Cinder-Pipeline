@@ -9,21 +9,21 @@
     url="https://github.com/pizthewiz/Cinder-Pipeline"
     >
     <supports os="macosx" />
-    <header>src/Cinder-Pipeline.h</header>
-    <header>src/Node.h</header>
+    <header>include/Cinder-Pipeline.h</header>
+    <header>include/Node.h</header>
     <source>src/Node.cpp</source>
-    <header>src/SourceNode.h</header>
-    <header>src/TextureSourceNode.h</header>
-    <header>src/EffectorNode.h</header>
+    <header>include/SourceNode.h</header>
+    <header>include/TextureSourceNode.h</header>
+    <header>include/EffectorNode.h</header>
     <source>src/EffectorNode.cpp</source>
-    <header>src/Branch.h</header>
-    <header>src/Context.h</header>
+    <header>include/Branch.h</header>
+    <header>include/Context.h</header>
     <source>src/Context.cpp</source>
-    <header>src/BlurNode.h</header>
+    <header>include/BlurNode.h</header>
     <source>src/BlurNode.cpp</source>
-    <header>src/TintNode.h</header>
+    <header>include/TintNode.h</header>
     <source>src/TintNode.cpp</source>
-    <header>src/BlendNode.h</header>
+    <header>include/BlendNode.h</header>
     <source>src/BlendNode.cpp</source>
 </block>
 </cinder>
