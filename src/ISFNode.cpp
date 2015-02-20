@@ -3,7 +3,7 @@
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 26 Aug 2014.
-//  Copyright 2014 Chorded Constructions. All rights reserved.
+//  Copyright 2014-2015 Chorded Constructions. All rights reserved.
 //
 
 #include "ISFNode.h"
@@ -205,7 +205,7 @@ void ISFNode::parseShader(const std::string& vertexShader, const std::string& fr
                     // TODO - ?
                     continue;
                 }
-                Vec2f value = Vec2f(pointData.getValueAtIndex<float>(0), pointData.getValueAtIndex<float>(1));
+                vec2 value = vec2(pointData.getValueAtIndex<float>(0), pointData.getValueAtIndex<float>(1));
                 ci::app::console() << "default: " << value << std::endl;
             }
             // min
@@ -215,7 +215,7 @@ void ISFNode::parseShader(const std::string& vertexShader, const std::string& fr
                     // TODO - ?
                     continue;
                 }
-                Vec2f value = Vec2f(pointData.getValueAtIndex<float>(0), pointData.getValueAtIndex<float>(1));
+                vec2 value = vec2(pointData.getValueAtIndex<float>(0), pointData.getValueAtIndex<float>(1));
                 ci::app::console() << "min: " << value << std::endl;
             }
             // max
@@ -225,7 +225,7 @@ void ISFNode::parseShader(const std::string& vertexShader, const std::string& fr
                     // TODO - ?
                     continue;
                 }
-                Vec2f value = Vec2f(pointData.getValueAtIndex<float>(0), pointData.getValueAtIndex<float>(1));
+                vec2 value = vec2(pointData.getValueAtIndex<float>(0), pointData.getValueAtIndex<float>(1));
                 ci::app::console() << "max: " << value << std::endl;
             }
         } else if (type == DictKeyInputTypeColor) {
