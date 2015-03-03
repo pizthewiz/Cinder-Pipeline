@@ -34,9 +34,8 @@ void EffectorNode::setupShader(const DataSourceRef& vertexShader, const DataSour
 }
 
 void EffectorNode::setupShader(const std::string& vertexShader, const std::string& fragmentShader) {
-    const char* vert = !vertexShader.empty() ? vertexShader.c_str() : sVertexShaderPassThrough.c_str();
-    const char* frag = fragmentShader.c_str();
-    mShader = gl::GlslProg::create(vert, frag);
+    std::string vert = !vertexShader.empty() ? vertexShader : sVertexShaderPassThrough;
+    mShader = gl::GlslProg::create(vert, fragmentShader);
 }
 
 }}
