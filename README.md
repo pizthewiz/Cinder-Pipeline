@@ -31,9 +31,9 @@ tintNode->setValueForInputPortKey(tintColor, TintNodeInputPortKeyColor);
 mContext->connectNodes(sourceNode, tintNode);
 
 // create horizontal blur, set size and connect to source
-BlurNodeRef blurNode = mContext->makeNode(new BlurNode);
+GaussianBlurNodeRef blurNode = mContext->makeNode(new GaussianBlurNode);
 vec2 size = vec2(1.0f/texture->getWidth(), 0.0f);
-blurNode->setValueForInputPortKey(size, BlurNodeInputPortKeyPixelSize);
+blurNode->setValueForInputPortKey(size, GaussianBlurNodeInputPortKeyPixelSize);
 mContext->connectNodes(tintNode, blurNode);
 
 // evaluate

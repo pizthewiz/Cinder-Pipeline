@@ -1,19 +1,19 @@
 //
-//  BlurNode.cpp
+//  GaussianBlurNode.cpp
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 22 Apr 2014.
 //  Copyright 2014-2015 Chorded Constructions. All rights reserved.
 //
 
-#include "BlurNode.h"
+#include "GaussianBlurNode.h"
 
 using namespace ci;
 using namespace Cinder::Pipeline;
 
 // (c) Paul Houx, 2014. https://github.com/paulhoux/Cinder-Samples/blob/master/BloomingNeon/assets/blur.frag
 // plus tweak suggested in thread: https://forum.libcinder.org/topic/fbo-gaussian-blur-shader-101#23286000000989085
-const std::string FragmentShaderBlur = R"(
+const std::string FragmentShaderGaussianBlur = R"(
     #version 150
     uniform sampler2D image;
     uniform vec2 pixelSize;
@@ -54,32 +54,32 @@ const std::string FragmentShaderBlur = R"(
     }
 )";
 
-BlurNode::BlurNode() {
+GaussianBlurNode::GaussianBlurNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         // TODO - would be nice if this were a resolution independent value, a multiplier maybe
-        NodePort::create(BlurNodeInputPortKeyPixelSize, NodePortType::Vec2, "Size"),
-        NodePort::create(BlurNodeInputPortKeyMixAmount, NodePortType::Float, "Mix", 1.0f, 0.0f, 1.0f),
+        NodePort::create(GaussianBlurNodeInputPortKeyPixelSize, NodePortType::Vec2, "Size"),
+        NodePort::create(GaussianBlurNodeInputPortKeyMixAmount, NodePortType::Float, "Mix", 1.0f, 0.0f, 1.0f),
     };
     setInputPorts(inputPorts);
     // NB - output port "image" of type NodePortType::FBOImage is already present
 
-    setupShader(sVertexShaderPassThrough, FragmentShaderBlur);
+    setupShader(sVertexShaderPassThrough, FragmentShaderGaussianBlur);
 }
 
-BlurNode::~BlurNode() {
+GaussianBlurNode::~GaussianBlurNode() {
 }
 
-void BlurNode::render(const FBOImageRef& outputFBOImage) {
+void GaussianBlurNode::render(const FBOImageRef& outputFBOImage) {
     FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(NodeInputPortKeyImage);
-    vec2 pixelSize = getValueForInputPortKey<vec2>(BlurNodeInputPortKeyPixelSize);
-    float mixAmount = getValueForInputPortKey<float>(BlurNodeInputPortKeyMixAmount);
+    vec2 pixelSize = getValueForInputPortKey<vec2>(GaussianBlurNodeInputPortKeyPixelSize);
+    float mixAmount = getValueForInputPortKey<float>(GaussianBlurNodeInputPortKeyMixAmount);
 
     gl::ScopedTextureBind texture(inputFBOImage->getTexture(), 0);
     gl::ScopedGlslProg shader(mShader);
 
     mShader->uniform(NodeInputPortKeyImage, 0);
-    mShader->uniform(BlurNodeInputPortKeyPixelSize, pixelSize);
-    mShader->uniform(BlurNodeInputPortKeyMixAmount, mixAmount);
+    mShader->uniform(GaussianBlurNodeInputPortKeyPixelSize, pixelSize);
+    mShader->uniform(GaussianBlurNodeInputPortKeyMixAmount, mixAmount);
     gl::drawSolidRect(outputFBOImage->getFBO()->getBounds());
 }

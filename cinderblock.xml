@@ -18,8 +18,8 @@
     <header>include/Branch.h</header>
     <header>include/Context.h</header>
     <source>src/Context.cpp</source>
-    <header>include/BlurNode.h</header>
-    <source>src/BlurNode.cpp</source>
+    <header>include/GaussianBlurNode.h</header>
+    <source>src/GaussianBlurNode.cpp</source>
     <header>include/TintNode.h</header>
     <source>src/TintNode.cpp</source>
     <header>include/BlendNode.h</header>
