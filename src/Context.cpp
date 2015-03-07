@@ -108,8 +108,9 @@ void Context::setup(const ivec2 size, GLenum colorFormat, int attachmentCount) {
         buffers[idx] = GL_COLOR_ATTACHMENT0 + idx;
     }
     glDrawBuffers(attachmentCount, buffers);
-    gl::ScopedFramebuffer scopedFBO(mFBO);
-    gl::ScopedViewport scopedViewport(ivec2(0), mFBO->getSize());
+    gl::ScopedMatrices matricies;
+    gl::ScopedViewport viewport(ivec2(0), mFBO->getSize());
+    gl::ScopedFramebuffer fbo(mFBO);
     gl::clear(ColorAf(0.0, 0.0, 0.0, 0.0));
 
     mColorFormat = colorFormat;
@@ -379,9 +380,9 @@ gl::Texture2dRef Context::evaluate(const NodeRef& node) {
     // render branches
     GLenum outAttachment = 0;
 
+    gl::ScopedMatrices matricies;
     gl::ScopedViewport viewport(ivec2(0), mFBO->getSize());
     gl::ScopedFramebuffer fbo(mFBO);
-    gl::ScopedMatrices matricies;
 
     gl::setMatricesWindow(mFBO->getSize());
     gl::color(Color::white());
