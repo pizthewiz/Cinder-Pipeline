@@ -35,3 +35,4 @@
 - investigate the [Boost Graph Library](http://www.boost.org/doc/libs/1_55_0/libs/graph/doc/index.html)
 - add some profiling, either [sansumbrella's Pockets](https://github.com/sansumbrella/Pockets/blob/dev/src/pockets/Profiling.h) or a simple cinder::Timer.
 - replace vector with set when uniqueness is needed
+- think about optimizations by [reducing binds](http://calebjohnston.com/storage/glsl/#optimization)
