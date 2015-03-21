@@ -20,7 +20,7 @@ const std::string FragmentShaderVibrance = R"(
     uniform float amount;
     uniform float mixAmount;
 
-    in vec2 TexCoord0;
+    in vec2 vTexCoord0;
 
     out vec4 FragColor;
 
@@ -42,7 +42,7 @@ const std::string FragmentShaderVibrance = R"(
     }
 
     void main() {
-        vec4 color = texture(image, TexCoord0.st);
+        vec4 color = texture(image, vTexCoord0);
 
         vec3 c = rgb2hsv(color.rgb);
         // plot:  http://po.st/oNWbxv

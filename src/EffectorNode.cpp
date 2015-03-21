@@ -17,12 +17,12 @@ const std::string EffectorNode::sVertexShaderPassThrough = R"(
     uniform mat4 ciModelViewProjection;
 
     in vec4 ciPosition;
-    in vec4 ciTexCoord0;
+    in vec2	ciTexCoord0;
 
-    out highp vec2 TexCoord0;
+    out vec2 vTexCoord0;
 
     void main() {
-        TexCoord0 = ciTexCoord0.st;
+        vTexCoord0 = ciTexCoord0;
         gl_Position = ciModelViewProjection * ciPosition;
     }
 )";

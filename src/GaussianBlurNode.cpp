@@ -19,12 +19,12 @@ const std::string FragmentShaderGaussianBlur = R"(
     uniform vec2 pixelSize;
     uniform float mixAmount;
 
-    in vec2 TexCoord0;
+    in vec2 vTexCoord0;
 
     out vec4 FragColor;
 
     void main() {
-        vec2 position = TexCoord0.st;
+        vec2 position = vTexCoord0;
         vec4 color = texture(image, position);
 
         vec4 sum = vec4(0.0);

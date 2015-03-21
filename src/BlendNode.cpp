@@ -20,7 +20,7 @@ const std::string FragmentShaderBlend = R"(
     uniform sampler2D blendImage;
     uniform int blendOperation;
 
-    in vec2 TexCoord0;
+    in vec2 vTexCoord0;
 
     out vec4 FragColor;
 
@@ -29,8 +29,8 @@ const std::string FragmentShaderBlend = R"(
     #define MODE_MULTIPLY 2
 
     void main() {
-        vec4 baseColor = texture(image, TexCoord0.st);
-        vec4 blendColor = texture(blendImage, TexCoord0.st);
+        vec4 baseColor = texture(image, vTexCoord0);
+        vec4 blendColor = texture(blendImage, vTexCoord0);
 
         if (blendOperation == MODE_SUBTRACT) {
             baseColor.rgb *= baseColor.a;

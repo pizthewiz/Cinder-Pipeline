@@ -17,7 +17,7 @@ const std::string FragmentShaderTint = R"(
     uniform vec4 tintColor;
     uniform float mixAmount;
 
-    in vec2 TexCoord0;
+    in vec2 vTexCoord0;
 
     out vec4 FragColor;
 
@@ -31,7 +31,7 @@ const std::string FragmentShaderTint = R"(
     }
 
     void main() {
-        vec4 color = texture(image, TexCoord0.st);
+        vec4 color = texture(image, vTexCoord0);
         float y = lumaRec601(color);
         vec4 result = tintColor * vec4(y, y, y, 1.0);
         FragColor = mix(color, result, mixAmount);
