@@ -22,7 +22,7 @@ const std::string FragmentShaderVibrance = R"(
 
     in vec2 vTexCoord0;
 
-    out vec4 FragColor;
+    out vec4 oFragColor;
 
     // http://gamedev.stackexchange.com/a/59808
     vec3 rgb2hsv(vec3 c) {
@@ -56,7 +56,7 @@ const std::string FragmentShaderVibrance = R"(
         result.rgb = hsv2rgb(c);
         result.a = color.a;
 
-        FragColor = mix(color, result, mixAmount);
+        oFragColor = mix(color, result, mixAmount);
     }
 )";
 

@@ -21,7 +21,7 @@ const std::string FragmentShaderGaussianBlur = R"(
 
     in vec2 vTexCoord0;
 
-    out vec4 FragColor;
+    out vec4 oFragColor;
 
     void main() {
         vec2 position = vTexCoord0;
@@ -50,7 +50,7 @@ const std::string FragmentShaderGaussianBlur = R"(
         sum += texture(image, position +  +9.0 * pixelSize) * 0.014053461291849008;
         sum += texture(image, position + +10.0 * pixelSize) * 0.009167927656011385;
 
-        FragColor = mix(color, sum, mixAmount);
+        oFragColor = mix(color, sum, mixAmount);
     }
 )";
 

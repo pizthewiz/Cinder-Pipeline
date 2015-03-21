@@ -19,7 +19,7 @@ const std::string FragmentShaderTint = R"(
 
     in vec2 vTexCoord0;
 
-    out vec4 FragColor;
+    out vec4 oFragColor;
 
     // http://en.wikipedia.org/wiki/Luma_(video)
     float lumaRec601(vec4 color) {
@@ -34,7 +34,7 @@ const std::string FragmentShaderTint = R"(
         vec4 color = texture(image, vTexCoord0);
         float y = lumaRec601(color);
         vec4 result = tintColor * vec4(y, y, y, 1.0);
-        FragColor = mix(color, result, mixAmount);
+        oFragColor = mix(color, result, mixAmount);
     }
 )";
 

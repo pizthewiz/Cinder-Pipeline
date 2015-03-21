@@ -22,7 +22,7 @@ const std::string FragmentShaderBlend = R"(
 
     in vec2 vTexCoord0;
 
-    out vec4 FragColor;
+    out vec4 oFragColor;
 
     #define MODE_SUBTRACT 0
     #define MODE_OVER 1
@@ -35,17 +35,17 @@ const std::string FragmentShaderBlend = R"(
         if (blendOperation == MODE_SUBTRACT) {
             baseColor.rgb *= baseColor.a;
             blendColor.rgb *= blendColor.a;
-            FragColor = max(baseColor - blendColor, vec4(0.0));
+            oFragColor = max(baseColor - blendColor, vec4(0.0));
         } else if (blendOperation == MODE_OVER) {
             baseColor.rgb *= baseColor.a;
             blendColor.rgb *= blendColor.a;
-            FragColor.rgb = blendColor.rgb + baseColor.rgb * (1.0 - blendColor.a);
-            FragColor.a = blendColor.a + baseColor.a * (1.0 - blendColor.a);
+            oFragColor.rgb = blendColor.rgb + baseColor.rgb * (1.0 - blendColor.a);
+            oFragColor.a = blendColor.a + baseColor.a * (1.0 - blendColor.a);
         } else if (blendOperation == MODE_MULTIPLY) {
             baseColor.rgb *= baseColor.a;
             blendColor.rgb *= blendColor.a;
-            FragColor.rgb = baseColor.rgb * blendColor.rgb;
-            FragColor.a = 1.0;
+            oFragColor.rgb = baseColor.rgb * blendColor.rgb;
+            oFragColor.a = 1.0;
         }
     }
 )";
