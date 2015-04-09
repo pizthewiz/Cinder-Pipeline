@@ -14,11 +14,14 @@ using namespace Cinder::Pipeline;
 
 typedef std::shared_ptr<class GaussianBlurNode> GaussianBlurNodeRef;
 
-static const std::string GaussianBlurNodeInputPortKeyPixelSize = "pixelSize";
+static const std::string GaussianBlurNodeInputPortKeyDirection = "direction";
+static const std::string GaussianBlurNodeInputPortKeyReach = "reach";
 static const std::string GaussianBlurNodeInputPortKeyMixAmount = "mixAmount";
 
 class GaussianBlurNode : public EffectorNode {
 public:
+    enum class BlurDirection {Vertical, Horizontal};
+
     GaussianBlurNode();
     ~GaussianBlurNode();
 
