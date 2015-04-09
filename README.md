@@ -14,26 +14,26 @@ Currently there are two abstract derived node classes, `SourceNode` and `Effecto
 
 ### USAGE
 ```C++
-gl::TextureRef texture = gl::Texture::create(loadImage(loadAsset(RES_LENNA_IMAGE)));
+auto texture = gl::Texture::create(loadImage(loadAsset(RES_LENNA_IMAGE)));
 
 // setup context internals (FBO) at source texture size
 mContext = Context::create();
 mContext->setup(texture->getSize(), 2);
 
 // create source
-TextureSourceNodeRef sourceNode = mContext->makeNode(new TextureSourceNode);
+auto sourceNode = mContext->makeNode(new TextureSourceNode);
 sourceNode->setValueForInputPortKey(texture, TextureSourceNodeInputPortKeyTexture);
 
-// create a color tint node and set to red
-TintNodeRef tintNode = mContext->makeNode(new TintNode);
+// create red color tint
+auto tintNode = mContext->makeNode(new TintNode);
 ColorAf color = ColorAf(1.0f, 0.0f, 0.0f, 1.0f);
 tintNode->setValueForInputPortKey(tintColor, TintNodeInputPortKeyColor);
 mContext->connectNodes(sourceNode, tintNode);
 
-// create horizontal blur, set size and connect to source
-GaussianBlurNodeRef blurNode = mContext->makeNode(new GaussianBlurNode);
-vec2 size = vec2(1.0f/texture->getWidth(), 0.0f);
-blurNode->setValueForInputPortKey(size, GaussianBlurNodeInputPortKeyPixelSize);
+// create horizontal blur
+auto blurNode = mContext->makeNode(new GaussianBlurNode);
+int direction = static_cast<int>(GaussianBlurNode::BlurDirection::Horizontal);
+blurNode->setValueForInputPortKey(direction, GaussianBlurNodeInputPortKeyDirection);
 mContext->connectNodes(tintNode, blurNode);
 
 // evaluate
