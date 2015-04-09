@@ -14,30 +14,29 @@ Currently there are two abstract derived node classes, `SourceNode` and `Effecto
 
 ### USAGE
 ```C++
-auto texture = gl::Texture::create(loadImage(loadAsset(RES_LENNA_IMAGE)));
-
 // setup context internals (FBO) at source texture size
-mContext = Context::create();
-mContext->setup(texture->getSize(), 2);
+auto context = Context::create();
+context->setup(texture->getSize(), 2);
 
 // create source
-auto sourceNode = mContext->makeNode(new TextureSourceNode);
+auto sourceNode = context->makeNode(new TextureSourceNode);
+auto texture = gl::Texture::create(loadImage(loadAsset(RES_LENNA_IMAGE)));
 sourceNode->setValueForInputPortKey(texture, TextureSourceNodeInputPortKeyTexture);
 
 // create red color tint
-auto tintNode = mContext->makeNode(new TintNode);
+auto tintNode = context->makeNode(new TintNode);
 ColorAf color = ColorAf(1.0f, 0.0f, 0.0f, 1.0f);
 tintNode->setValueForInputPortKey(tintColor, TintNodeInputPortKeyColor);
-mContext->connectNodes(sourceNode, tintNode);
+context->connectNodes(sourceNode, tintNode);
 
 // create horizontal blur
-auto blurNode = mContext->makeNode(new GaussianBlurNode);
+auto blurNode = context->makeNode(new GaussianBlurNode);
 int direction = static_cast<int>(GaussianBlurNode::BlurDirection::Horizontal);
 blurNode->setValueForInputPortKey(direction, GaussianBlurNodeInputPortKeyDirection);
-mContext->connectNodes(tintNode, blurNode);
+context->connectNodes(tintNode, blurNode);
 
-// evaluate
-mTexture = mContext->evaluate(blurNode);
+// evaluate (source -> tint -> blur)
+auto resultTexture = context->evaluate(blurNode);
 ```
 
 ### CUSTOM EFFECTOR NODE
