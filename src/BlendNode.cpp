@@ -18,7 +18,7 @@ const std::string FragmentShaderBlend = R"(
     #version 150
     uniform sampler2D image;
     uniform sampler2D blendImage;
-    uniform int blendOperation;
+    uniform int blendMode;
 
     in vec2 vTexCoord0;
 
@@ -32,16 +32,16 @@ const std::string FragmentShaderBlend = R"(
         vec4 baseColor = texture(image, vTexCoord0);
         vec4 blendColor = texture(blendImage, vTexCoord0);
 
-        if (blendOperation == MODE_SUBTRACT) {
+        if (blendMode == MODE_SUBTRACT) {
             baseColor.rgb *= baseColor.a;
             blendColor.rgb *= blendColor.a;
             oFragColor = max(baseColor - blendColor, vec4(0.0));
-        } else if (blendOperation == MODE_OVER) {
+        } else if (blendMode == MODE_OVER) {
             baseColor.rgb *= baseColor.a;
             blendColor.rgb *= blendColor.a;
             oFragColor.rgb = blendColor.rgb + baseColor.rgb * (1.0 - blendColor.a);
             oFragColor.a = blendColor.a + baseColor.a * (1.0 - blendColor.a);
-        } else if (blendOperation == MODE_MULTIPLY) {
+        } else if (blendMode == MODE_MULTIPLY) {
             baseColor.rgb *= baseColor.a;
             blendColor.rgb *= blendColor.a;
             oFragColor.rgb = baseColor.rgb * blendColor.rgb;
@@ -54,7 +54,8 @@ BlendNode::BlendNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         NodePort::create(BlendNodeInputPortKeyBlendImage, NodePortType::FBOImage),
-        NodePort::create(BlendNodeInputPortKeyOperation, NodePortType::Index, "Mode", static_cast<int>(BlendNode::BlendOperationIndex::Over), {0, 1, 2}, {"Subtract", "Over", "Multiply"}),
+        NodePort::create(BlendNodeInputPortKeyBlendMode, NodePortType::Index, "Mode",
+          static_cast<int>(BlendNode::BlendMode::Over), {static_cast<int>(BlendNode::BlendMode::Subtract), static_cast<int>(BlendNode::BlendMode::Over), static_cast<int>(BlendNode::BlendMode::Multiply)}, {"Subtract", "Over", "Multiply"}),
     };
     setInputPorts(inputPorts);
 
@@ -67,8 +68,8 @@ BlendNode::~BlendNode() {
 void BlendNode::render(const FBOImageRef& outputFBOImage) {
     FBOImageRef inputFBOImage = getValueForInputPortKey<FBOImageRef>(NodeInputPortKeyImage);
     FBOImageRef inputFBOImage2 = getValueForInputPortKey<FBOImageRef>(BlendNodeInputPortKeyBlendImage);
-    int index = getValueForInputPortKey<int>(BlendNodeInputPortKeyOperation);
-    int blendOperation = getInputPortForKey(BlendNodeInputPortKeyOperation)->getValues().at(index);
+    int index = getValueForInputPortKey<int>(BlendNodeInputPortKeyBlendMode);
+    int BlendMode = getInputPortForKey(BlendNodeInputPortKeyBlendMode)->getValues().at(index);
 
     gl::ScopedTextureBind texture(inputFBOImage->getTexture(), 0);
     gl::ScopedTextureBind texture2(inputFBOImage2->getTexture(), 1);
@@ -76,6 +77,6 @@ void BlendNode::render(const FBOImageRef& outputFBOImage) {
 
     mShader->uniform(NodeInputPortKeyImage, 0);
     mShader->uniform(BlendNodeInputPortKeyBlendImage, 1);
-    mShader->uniform(BlendNodeInputPortKeyOperation, blendOperation);
+    mShader->uniform(BlendNodeInputPortKeyBlendMode, BlendMode);
     gl::drawSolidRect(outputFBOImage->getFBO()->getBounds());
 }
