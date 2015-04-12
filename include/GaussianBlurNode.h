@@ -15,7 +15,7 @@ using namespace Cinder::Pipeline;
 typedef std::shared_ptr<class GaussianBlurNode> GaussianBlurNodeRef;
 
 static const std::string GaussianBlurNodeInputPortKeyDirection = "direction";
-static const std::string GaussianBlurNodeInputPortKeyReach = "reach";
+static const std::string GaussianBlurNodeInputPortKeyRadius = "radius";
 static const std::string GaussianBlurNodeInputPortKeyMixAmount = "mixAmount";
 
 class GaussianBlurNode : public EffectorNode {
@@ -30,4 +30,7 @@ public:
     std::string getName() const { return "Gaussian Blur"; }
 
     void render(const FBOImageRef& outputFBOImage);
+
+private:
+    void setupShaderForRadius(const float radius);
 };
