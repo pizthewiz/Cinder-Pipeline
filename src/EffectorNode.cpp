@@ -27,6 +27,19 @@ const std::string EffectorNode::sVertexShaderPassThrough = R"(
     }
 )";
 
+const std::string EffectorNode::sFragmentShaderPassThrough = R"(
+    #version 150
+    uniform sampler2D image;
+
+    in vec2 vTexCoord0;
+
+    out vec4 oFragColor;
+
+    void main() {
+        oFragColor = texture(image, vTexCoord0);
+    }
+)";
+
 void EffectorNode::setupShader(const DataSourceRef& vertexShader, const DataSourceRef& fragmentShader) {
     std::string vert = vertexShader ? loadString(vertexShader) : sVertexShaderPassThrough;
     std::string frag = loadString(fragmentShader);
@@ -35,7 +48,12 @@ void EffectorNode::setupShader(const DataSourceRef& vertexShader, const DataSour
 
 void EffectorNode::setupShader(const std::string& vertexShader, const std::string& fragmentShader) {
     std::string vert = !vertexShader.empty() ? vertexShader : sVertexShaderPassThrough;
-    mShader = gl::GlslProg::create(vert, fragmentShader);
+    auto format = gl::GlslProg::Format().vertex(vert).fragment(fragmentShader);
+    try {
+        mShader = gl::GlslProg::create(format);
+    } catch (gl::GlslProgExc e) {
+        throw e;
+    }
 }
 
 }}
