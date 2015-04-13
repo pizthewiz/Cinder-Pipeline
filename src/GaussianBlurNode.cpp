@@ -44,8 +44,8 @@ const std::string FragmentShaderGaussianBlur = R"(
 
         vec4 sum = texture(image, vTexCoord0) * weight[0];
         for (int idx = 1; idx < SAMPLE_COUNT; idx++) {
-            sum += texture(image, vTexCoord0 + direction * offset[idx] / dimension) * weight[idx];
-            sum += texture(image, vTexCoord0 - direction * offset[idx] / dimension) * weight[idx];
+            sum += texture(image, vTexCoord0 + direction * (offset[idx] / dimension)) * weight[idx];
+            sum += texture(image, vTexCoord0 - direction * (offset[idx] / dimension)) * weight[idx];
         }
 
         oFragColor = mix(color, sum, mixAmount);
