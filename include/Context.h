@@ -51,7 +51,7 @@ public:
     ~Context();
 
     // NB - attachmentCount = max FBOImage input ports in any node + 1
-    void setup(const ci::ivec2 size, GLenum colorFormat = GL_RGBA8, int attachmentCount = 3);
+    void setup(const ci::ivec2& size, GLenum colorFormat = GL_RGBA8, int attachmentCount = 3);
 
     inline std::vector<NodeRef> getNodes() const { return mNodes; }
 
@@ -89,7 +89,7 @@ public:
     inline std::map<std::string, std::vector<NodePortConnectionRef>> getOutputConnectionsForNode(const NodeRef& node) {
         return mOutputConnections[node];
     }
-    std::vector<NodePortConnectionRef> getOutputConnectionsForNodeWithPortType(const NodeRef& node, NodePortType type) {
+    std::vector<NodePortConnectionRef> getOutputConnectionsForNodeWithPortType(const NodeRef& node, const NodePortType type) {
         std::vector<NodePortConnectionRef> filteredConnections;
         for (auto& kv : mOutputConnections[node]) {
             NodePortRef port = node->getOutputPortForKey(kv.first);

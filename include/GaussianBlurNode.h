@@ -32,5 +32,5 @@ public:
     void render(const FBOImageRef& outputFBOImage);
 
 private:
-    void setupShaderForRadius(const float radius);
+    void setupShaderForRadius(float radius);
 };

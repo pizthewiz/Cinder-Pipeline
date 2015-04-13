@@ -30,7 +30,7 @@ Context::~Context() {
 
 #pragma mark -
 
-void Context::setup(const ivec2 size, GLenum colorFormat, int attachmentCount) {
+void Context::setup(const ivec2& size, GLenum colorFormat, int attachmentCount) {
     // bail if size and attachments are unchanged
     if (mFBO && size == mFBO->getSize() && colorFormat == mColorFormat && attachmentCount == mAttachmentCount) {
         return;

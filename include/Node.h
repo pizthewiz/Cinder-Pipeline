@@ -20,7 +20,7 @@ typedef std::shared_ptr<class FBOImage> FBOImageRef;
 
 class FBOImage : public std::enable_shared_from_this<FBOImage> {
 public:
-    static FBOImageRef create(const ci::gl::FboRef& fbo, const GLenum attachment) {
+    static FBOImageRef create(const ci::gl::FboRef& fbo, GLenum attachment) {
         return FBOImageRef(new FBOImage(fbo, attachment))->shared_from_this();
     }
 
@@ -30,7 +30,7 @@ public:
     ci::gl::TextureBaseRef getTexture() { return mFBO->getTexture(mAttachment); }
 
 private:
-    FBOImage(const ci::gl::FboRef& fbo, const GLenum attachment) : mFBO(fbo), mAttachment(attachment) {}
+    FBOImage(const ci::gl::FboRef& fbo, GLenum attachment) : mFBO(fbo), mAttachment(attachment) {}
 
     ci::gl::FboRef mFBO;
     GLenum mAttachment;
@@ -98,7 +98,7 @@ public:
     inline std::vector<NodePortRef>& getOutputPorts() { return mOutputPorts; }
 
     std::vector<std::string> getInputPortKeys();
-    std::vector<std::string> getInputPortKeysWithType(NodePortType type);
+    std::vector<std::string> getInputPortKeysWithType(const NodePortType type);
     std::vector<std::string> getImageInputPortKeys() { return getInputPortKeysWithType(NodePortType::FBOImage); }
 
     NodePortRef getInputPortForKey(const std::string& key);

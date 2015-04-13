@@ -87,7 +87,7 @@ void BlendNode::render(const FBOImageRef& outputFBOImage) {
     gl::drawSolidRect(outputFBOImage->getFBO()->getBounds());
 }
 
-void BlendNode::setupShaderForBlendMode(const BlendMode mode) {
+void BlendNode::setupShaderForBlendMode(BlendMode mode) {
     auto format = gl::GlslProg::Format().vertex(sVertexShaderPassThrough).fragment(FragmentShaderBlend);
     format.define("DEFAULT_OVERRIDE");
     switch (mode) {
