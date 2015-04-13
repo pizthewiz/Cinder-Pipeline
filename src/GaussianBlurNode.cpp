@@ -55,7 +55,7 @@ const std::string FragmentShaderGaussianBlur = R"(
 GaussianBlurNode::GaussianBlurNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
-        NodePort::create(GaussianBlurNodeInputPortKeyDirection, NodePortType::Index, "Direction", static_cast<int>(GaussianBlurNode::BlurDirection::Vertical), {static_cast<int>(GaussianBlurNode::BlurDirection::Vertical), static_cast<int>(GaussianBlurNode::BlurDirection::Horizontal)}, {"Vertical", "Horizontal"}),
+        NodePort::create(GaussianBlurNodeInputPortKeyDirection, NodePortType::Index, "Direction", static_cast<int>(BlurDirection::Vertical), {static_cast<int>(BlurDirection::Vertical), static_cast<int>(BlurDirection::Horizontal)}, {"Vertical", "Horizontal"}),
         NodePort::create(GaussianBlurNodeInputPortKeyRadius, NodePortType::Float, "Radius", GaussianBlurNodeRadiusDefault, 0.0f, 8.0f),
         NodePort::create(GaussianBlurNodeInputPortKeyMixAmount, NodePortType::Float, "Mix", 1.0f, 0.0f, 1.0f),
     };
@@ -80,8 +80,8 @@ void GaussianBlurNode::render(const FBOImageRef& outputFBOImage) {
 
     int index = getValueForInputPortKey<int>(GaussianBlurNodeInputPortKeyDirection);
     int value = getInputPortForKey(GaussianBlurNodeInputPortKeyDirection)->getValues().at(index);
-    vec2 direction = value == static_cast<int>(GaussianBlurNode::BlurDirection::Vertical) ? vec2(0.0f, 1.0f) : vec2(1.0f, 0.0f);
-    float dimension = value == static_cast<int>(GaussianBlurNode::BlurDirection::Vertical) ? inputTexture->getHeight() : inputTexture->getWidth();
+    vec2 direction = value == static_cast<int>(BlurDirection::Vertical) ? vec2(0.0f, 1.0f) : vec2(1.0f, 0.0f);
+    float dimension = value == static_cast<int>(BlurDirection::Vertical) ? inputTexture->getHeight() : inputTexture->getWidth();
     float mixAmount = getValueForInputPortKey<float>(GaussianBlurNodeInputPortKeyMixAmount);
 
     gl::ScopedTextureBind texture(inputTexture, 0);
