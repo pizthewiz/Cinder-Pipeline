@@ -61,13 +61,14 @@ NodePortRef Node::getOutputPortForKey(const std::string& key) {
 }
 
 void Node::setValueForInputPortKey(const boost::any& value, const std::string& key) {
-    boost::any val = value;
+    // copy to allow manipulation via clamp
+    boost::any valueShadow = value;
 
     // access will add an entry if the key is not present 👎
-    bool hasOldVal = hasValueForInputPortKey(key);
-    boost::any oldVal;
-    if (hasOldVal) {
-        oldVal = mInputPortValueMap[key];
+    bool hasOldValue = hasValueForInputPortKey(key);
+    boost::any oldValue;
+    if (hasOldValue) {
+        oldValue = mInputPortValueMap[key];
     }
 
     NodePortRef port = getInputPortForKey(key);
@@ -80,30 +81,30 @@ void Node::setValueForInputPortKey(const boost::any& value, const std::string& k
             valueDidChange = true;
             break;
         case NodePortType::Bool:
-            valueDidChange = hasOldVal ? boost::any_cast<bool>(val) != boost::any_cast<bool>(oldVal) : true;
+            valueDidChange = hasOldValue ? boost::any_cast<bool>(valueShadow) != boost::any_cast<bool>(oldValue) : true;
             break;
         case NodePortType::Float:
-            val = clampValue<float>(value, port->getValueMinimum(), port->getValueMaximum());
-            valueDidChange = hasOldVal ? boost::any_cast<float>(val) != boost::any_cast<float>(oldVal) : true;
+            valueShadow = clampValue<float>(value, port->getValueMinimum(), port->getValueMaximum());
+            valueDidChange = hasOldValue ? boost::any_cast<float>(valueShadow) != boost::any_cast<float>(oldValue) : true;
             break;
         case NodePortType::Int:
-            val = clampValue<int>(value, port->getValueMinimum(), port->getValueMaximum());
-            valueDidChange = hasOldVal ? boost::any_cast<int>(val) != boost::any_cast<int>(oldVal) : true;
+            valueShadow = clampValue<int>(value, port->getValueMinimum(), port->getValueMaximum());
+            valueDidChange = hasOldValue ? boost::any_cast<int>(valueShadow) != boost::any_cast<int>(oldValue) : true;
             break;
         case NodePortType::Vec2:
             // TODO: clamp
-            valueDidChange = hasOldVal ? boost::any_cast<ci::vec2>(val) != boost::any_cast<ci::vec2>(oldVal) : true;
+            valueDidChange = hasOldValue ? boost::any_cast<ci::vec2>(valueShadow) != boost::any_cast<ci::vec2>(oldValue) : true;
             break;
         case NodePortType::Color:
             // TODO: clamp
-            valueDidChange = hasOldVal ? boost::any_cast<ci::ColorA>(val) != boost::any_cast<ci::ColorA>(oldVal) : true;
+            valueDidChange = hasOldValue ? boost::any_cast<ci::ColorA>(valueShadow) != boost::any_cast<ci::ColorA>(oldValue) : true;
             break;
         case NodePortType::Index:
-            val = clampValue<int>(value, 0, static_cast<int>(port->getValues().size()) - 1);
-            valueDidChange = hasOldVal ? boost::any_cast<int>(val) != boost::any_cast<int>(oldVal) : true;
+            valueShadow = clampValue<int>(value, 0, static_cast<int>(port->getValues().size()) - 1);
+            valueDidChange = hasOldValue ? boost::any_cast<int>(valueShadow) != boost::any_cast<int>(oldValue) : true;
             break;
         case NodePortType::FilePath:
-            valueDidChange = hasOldVal ? boost::any_cast<ci::fs::path>(val) != boost::any_cast<ci::fs::path>(oldVal) : true;
+            valueDidChange = hasOldValue ? boost::any_cast<ci::fs::path>(valueShadow) != boost::any_cast<ci::fs::path>(oldValue) : true;
             break;
         default:
             break;
@@ -114,11 +115,11 @@ void Node::setValueForInputPortKey(const boost::any& value, const std::string& k
         return;
     }
 
-    mInputPortValueMap[key] = val;
+    mInputPortValueMap[key] = valueShadow;
 
     // value changed handler
     if (mInputPortValueChangedHandlerMap.find(key) != mInputPortValueChangedHandlerMap.end()) {
-        mInputPortValueChangedHandlerMap[key](key);
+        mInputPortValueChangedHandlerMap[key](key, valueShadow, oldValue);
     }
 }
 

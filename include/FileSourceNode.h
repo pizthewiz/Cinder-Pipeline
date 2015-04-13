@@ -25,9 +25,9 @@ public:
         setInputPorts(inputPorts);
 
         // setup texture when file path changes
-        connectValueForInputPortKeyChangedHandler(FileSourceNodeInputPortKeyImageFilePath, [&](const std::string key) {
+        connectValueForInputPortKeyChangedHandler(FileSourceNodeInputPortKeyImageFilePath, [&](const std::string& key, const boost::any& newValue, const boost::any& oldValue) {
             mTexture = nullptr;
-            ci::fs::path path = getValueForInputPortKey<ci::fs::path>(key);
+            ci::fs::path path = boost::any_cast<ci::fs::path>(newValue);
             // TODO - check if exists
             mTexture = ci::gl::Texture::create(ci::loadImage(path));
         });

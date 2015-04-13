@@ -111,9 +111,9 @@ public:
 
     template<typename T, typename Y>
     inline void connectValueForInputPortKeyChangedHandler(const std::string& key, T handler, Y* obj) {
-        connectValueForInputPortKeyChangedHandler(key, std::bind(handler, obj, std::placeholders::_1));
+        connectValueForInputPortKeyChangedHandler(key, std::bind(handler, obj, std::placeholders::_3));
     }
-    void connectValueForInputPortKeyChangedHandler(const std::string& key, const std::function<void (const std::string&)>& handler) {
+    void connectValueForInputPortKeyChangedHandler(const std::string& key, const std::function<void (const std::string& key, const boost::any& newValue, const boost::any& oldValue)>& handler) {
         mInputPortValueChangedHandlerMap[key] = handler;
     }
 
@@ -124,7 +124,7 @@ protected:
     std::vector<NodePortRef> mInputPorts;
     std::vector<NodePortRef> mOutputPorts;
     std::map<std::string, boost::any> mInputPortValueMap;
-    std::map<std::string, std::function<void (const std::string&)>> mInputPortValueChangedHandlerMap;
+    std::map<std::string, std::function<void (const std::string&, const boost::any&, const boost::any&)>> mInputPortValueChangedHandlerMap;
 };
 
 }}

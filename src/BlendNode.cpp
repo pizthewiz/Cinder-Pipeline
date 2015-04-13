@@ -62,8 +62,8 @@ BlendNode::BlendNode() {
     setInputPorts(inputPorts);
 
     // setup shader when radius changes
-    connectValueForInputPortKeyChangedHandler(BlendNodeInputPortKeyBlendMode, [&](const std::string key) {
-        int index = getValueForInputPortKey<int>(key);
+    connectValueForInputPortKeyChangedHandler(BlendNodeInputPortKeyBlendMode, [&](const std::string& key, const boost::any& newValue, const boost::any& oldValue) {
+        int index = boost::any_cast<int>(newValue);
         BlendMode mode = static_cast<BlendMode>(getInputPortForKey(BlendNodeInputPortKeyBlendMode)->getValues().at(index));
         setupShaderForBlendMode(mode);
     });
