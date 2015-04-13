@@ -19,7 +19,7 @@ static const std::string BlendNodeInputPortKeyBlendMode = "blendMode";
 
 class BlendNode : public EffectorNode {
 public:
-    enum class BlendMode {Subtract, Over, Multiply};
+    enum class BlendMode { Subtract, Over, Multiply };
 
     BlendNode();
     ~BlendNode();
@@ -29,4 +29,7 @@ public:
     std::string getName() const { return "Blend"; }
 
     void render(const FBOImageRef& outputFBOImage);
+
+private:
+    void setupShaderForBlendMode(const BlendMode mode);
 };
