@@ -91,7 +91,7 @@ public:
 
     NodeRef getPtr() { return shared_from_this(); }
 
-    virtual std::string getName() const = 0;
+    virtual std::string getName() = 0;
 
     void setInputPorts(std::vector<NodePortRef>& ports);
     inline std::vector<NodePortRef>& getInputPorts() { return mInputPorts; }

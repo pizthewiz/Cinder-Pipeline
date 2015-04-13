@@ -26,9 +26,9 @@ public:
 
     BlendNodeRef getPtr() { return std::static_pointer_cast<BlendNode>(shared_from_this()); }
 
-    std::string getName() const { return "Blend"; }
+    std::string getName() override { return "Blend"; }
 
-    void render(const FBOImageRef& outputFBOImage);
+    void render(const FBOImageRef& outputFBOImage) override;
 
 private:
     void setupShaderForBlendMode(const BlendMode mode);

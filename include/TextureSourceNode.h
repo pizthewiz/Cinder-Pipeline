@@ -3,7 +3,7 @@
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 06 Jul 2014.
-//  Copyright 2014 Chorded Constructions. All rights reserved.
+//  Copyright 2014-2015 Chorded Constructions. All rights reserved.
 //
 
 #pragma once
@@ -28,9 +28,9 @@ public:
 
     TextureSourceNodeRef getPtr() { return std::static_pointer_cast<TextureSourceNode>(shared_from_this()); }
 
-    std::string getName() const { return "Texture Source"; }
+    std::string getName() override { return "Texture Source"; }
 
-    void render(const FBOImageRef& outputFBOImage) {
+    void render(const FBOImageRef& outputFBOImage) override {
         ci::gl::TextureRef texture = getValueForInputPortKey<ci::gl::TextureRef>(TextureSourceNodeInputPortKeyTexture);
         ci::gl::draw(texture);
     }

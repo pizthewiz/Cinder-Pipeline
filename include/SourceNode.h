@@ -3,7 +3,7 @@
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 19 May 2014.
-//  Copyright 2014 Chorded Constructions. All rights reserved.
+//  Copyright 2014-2015 Chorded Constructions. All rights reserved.
 //
 
 #pragma once
@@ -21,7 +21,7 @@ public:
 
     SourceNodeRef getPtr() { return std::static_pointer_cast<SourceNode>(shared_from_this()); }
 
-    virtual std::string getName() const = 0;
+    virtual std::string getName() = 0;
 
     virtual void render(const FBOImageRef& outputFBOImage) = 0;
 };

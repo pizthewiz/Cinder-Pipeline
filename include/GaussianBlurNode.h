@@ -27,9 +27,9 @@ public:
 
     GaussianBlurNodeRef getPtr() { return std::static_pointer_cast<GaussianBlurNode>(shared_from_this()); }
 
-    std::string getName() const { return "Gaussian Blur"; }
+    std::string getName() override { return "Gaussian Blur"; }
 
-    void render(const FBOImageRef& outputFBOImage);
+    void render(const FBOImageRef& outputFBOImage) override;
 
 private:
     void setupShaderForRadius(float radius);

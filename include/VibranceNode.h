@@ -3,7 +3,7 @@
 //  Cinder-Pipeline
 //
 //  Created by Jean-Pierre Mouilleseaux on 28 Sept 2014.
-//  Copyright 2014 Chorded Constructions. All rights reserved.
+//  Copyright 2014-2015 Chorded Constructions. All rights reserved.
 //
 
 #pragma once
@@ -24,7 +24,7 @@ public:
 
     VibranceNodeRef getPtr() { return std::static_pointer_cast<VibranceNode>(shared_from_this()); }
 
-    std::string getName() const { return "Vibrance"; }
+    std::string getName() override { return "Vibrance"; }
 
-    void render(const FBOImageRef& outputFBOImage);
+    void render(const FBOImageRef& outputFBOImage) override;
 };

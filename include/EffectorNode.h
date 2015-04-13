@@ -22,7 +22,7 @@ public:
 
     EffectorNodeRef getPtr() { return std::static_pointer_cast<EffectorNode>(shared_from_this()); }
 
-    virtual std::string getName() const = 0;
+    virtual std::string getName() = 0;
 
     virtual void render(const FBOImageRef& outputFBOImage) {}
 

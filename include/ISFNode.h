@@ -23,9 +23,9 @@ public:
 
     ISFNodeRef getPtr() { return std::static_pointer_cast<ISFNode>(shared_from_this()); }
 
-    std::string getName() const { return "ISF"; }
+    std::string getName() override { return "ISF"; }
 
-    void render(const FBOImageRef& outputFBOImage);
+    void render(const FBOImageRef& outputFBOImage) override;
 
 private:
     void parseShader(const ci::DataSourceRef& vertexShader, const ci::DataSourceRef& fragmentShader);
