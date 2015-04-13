@@ -20,7 +20,7 @@ static const std::string GaussianBlurNodeInputPortKeyMixAmount = "mixAmount";
 
 class GaussianBlurNode : public EffectorNode {
 public:
-    enum class BlurDirection {Vertical, Horizontal};
+    enum class BlurDirection { Vertical, Horizontal };
 
     GaussianBlurNode();
     ~GaussianBlurNode();
