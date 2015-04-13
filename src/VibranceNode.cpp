@@ -51,10 +51,7 @@ const std::string FragmentShaderVibrance = R"(
         } else {
             c.y = amount * (sqrt(1.0 - c.y) - (1.0 - c.y)) + c.y;
         }
-
-        vec4 result;
-        result.rgb = hsv2rgb(c);
-        result.a = color.a;
+        vec4 result = vec4(hsv2rgb(c), color.a);
 
         oFragColor = mix(color, result, mixAmount);
     }
