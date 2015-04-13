@@ -62,34 +62,57 @@ NodePortRef Node::getOutputPortForKey(const std::string& key) {
 
 void Node::setValueForInputPortKey(const boost::any& value, const std::string& key) {
     boost::any val = value;
+
+    // access will add an entry if the key is not present 👎
+    bool hasOldVal = hasValueForInputPortKey(key);
+    boost::any oldVal;
+    if (hasOldVal) {
+        oldVal = mInputPortValueMap[key];
+    }
+
     NodePortRef port = getInputPortForKey(key);
+    bool valueDidChange = false;
 
     switch (port->getType()) {
         case NodePortType::FBOImage:
         case NodePortType::Texture:
+            // TODO: pointer comparison?
+            valueDidChange = true;
+            break;
         case NodePortType::Bool:
+            valueDidChange = hasOldVal ? boost::any_cast<bool>(val) != boost::any_cast<bool>(oldVal) : true;
             break;
         case NodePortType::Float:
             val = clampValue<float>(value, port->getValueMinimum(), port->getValueMaximum());
+            valueDidChange = hasOldVal ? boost::any_cast<float>(val) != boost::any_cast<float>(oldVal) : true;
             break;
         case NodePortType::Int:
             val = clampValue<int>(value, port->getValueMinimum(), port->getValueMaximum());
+            valueDidChange = hasOldVal ? boost::any_cast<int>(val) != boost::any_cast<int>(oldVal) : true;
             break;
         case NodePortType::Vec2:
-            // TODO - ?
+            // TODO: clamp
+            valueDidChange = hasOldVal ? boost::any_cast<ci::vec2>(val) != boost::any_cast<ci::vec2>(oldVal) : true;
             break;
         case NodePortType::Color:
-            // TODO - ?
+            // TODO: clamp
+            valueDidChange = hasOldVal ? boost::any_cast<ci::ColorA>(val) != boost::any_cast<ci::ColorA>(oldVal) : true;
             break;
         case NodePortType::Index:
-            // TODO - ?
+            val = clampValue<int>(value, 0, static_cast<int>(port->getValues().size()) - 1);
+            valueDidChange = hasOldVal ? boost::any_cast<int>(val) != boost::any_cast<int>(oldVal) : true;
             break;
         case NodePortType::FilePath:
+            valueDidChange = hasOldVal ? boost::any_cast<ci::fs::path>(val) != boost::any_cast<ci::fs::path>(oldVal) : true;
+            break;
         default:
             break;
     }
 
-    // TODO - bail if value is unchanged http://stackoverflow.com/questions/6029092/compare-boostany-contents/6029595#6029595
+    // bail if the value is unchanged
+    if (!valueDidChange) {
+        return;
+    }
 
     mInputPortValueMap[key] = val;
 
