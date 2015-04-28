@@ -13,7 +13,7 @@ using namespace ci;
 using namespace Cinder::Pipeline;
 
 static const std::string GaussianBlurNodeInputPortKeyDimension = "dimension";
-static const float GaussianBlurNodeRadiusDefault = 2.0f; // NB: actually sigma like CIGaussianBlur's inputRadius
+static const int GaussianBlurNodeRadiusDefault = 2; // NB: actually sigma like CIGaussianBlur's inputRadius
 
 // Based on Brad Larson's GPUImage work at https://github.com/BradLarson/GPUImage/blob/master/framework/Source/GPUImageGaussianBlurFilter.h
 //  https://github.com/BradLarson/GPUImage/blob/master/framework/Source/GPUImageGaussianBlurFilter.m
@@ -56,7 +56,7 @@ GaussianBlurNode::GaussianBlurNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         NodePort::create(GaussianBlurNodeInputPortKeyDirection, NodePortType::Index, "Direction", static_cast<int>(BlurDirection::Vertical), {static_cast<int>(BlurDirection::Vertical), static_cast<int>(BlurDirection::Horizontal)}, {"Vertical", "Horizontal"}),
-        NodePort::create(GaussianBlurNodeInputPortKeyRadius, NodePortType::Float, "Radius", GaussianBlurNodeRadiusDefault, 0.0f, 8.0f),
+        NodePort::create(GaussianBlurNodeInputPortKeyRadius, NodePortType::Int, "Radius", GaussianBlurNodeRadiusDefault, 0, 10),
         NodePort::create(GaussianBlurNodeInputPortKeyMixAmount, NodePortType::Float, "Mix", 1.0f, 0.0f, 1.0f),
     };
     setInputPorts(inputPorts);
@@ -64,11 +64,8 @@ GaussianBlurNode::GaussianBlurNode() {
 
     // setup shader when radius changes
     connectValueForInputPortKeyChangedHandler(GaussianBlurNodeInputPortKeyRadius, [&](const std::string& key, const boost::any& newValue, const boost::any& oldValue) {
-        float radius = roundf(boost::any_cast<float>(newValue));
-        float oldRadius = roundf(boost::any_cast<float>(oldValue));
-        if (radius != oldRadius) {
-            setupShaderForRadius(radius);
-        }
+        float radius = boost::any_cast<int>(newValue);
+        setupShaderForRadius(radius);
     });
 
     setupShader(sVertexShaderPassThrough, FragmentShaderGaussianBlur);
@@ -97,7 +94,7 @@ void GaussianBlurNode::render(const FBOImageRef& outputFBOImage) {
     gl::drawSolidRect(outputFBOImage->getFBO()->getBounds());
 }
 
-void GaussianBlurNode::setupShaderForRadius(const float radius) {
+void GaussianBlurNode::setupShaderForRadius(float radius) {
     float blurRadiusInPixels = radius;
     int calculatedSampleRadius = 0;
     if (blurRadiusInPixels > 0) {
