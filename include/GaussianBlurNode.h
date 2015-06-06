@@ -34,3 +34,5 @@ public:
 private:
     void setupShaderForRadius(float radius);
 };
+
+static const GaussianBlurNode::BlurDirection GaussianBlurNodeBlurDirectionDefault = GaussianBlurNode::BlurDirection::Vertical;

@@ -55,7 +55,7 @@ const std::string FragmentShaderGaussianBlur = R"(
 GaussianBlurNode::GaussianBlurNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
-        NodePort::create(GaussianBlurNodeInputPortKeyDirection, NodePortType::Index, "Direction", static_cast<int>(BlurDirection::Vertical), {static_cast<int>(BlurDirection::Vertical), static_cast<int>(BlurDirection::Horizontal)}, {"Vertical", "Horizontal"}),
+        NodePort::create(GaussianBlurNodeInputPortKeyDirection, NodePortType::Index, "Direction", static_cast<int>(GaussianBlurNodeBlurDirectionDefault), {static_cast<int>(BlurDirection::Vertical), static_cast<int>(BlurDirection::Horizontal)}, {"Vertical", "Horizontal"}),
         NodePort::create(GaussianBlurNodeInputPortKeyRadius, NodePortType::Int, "Radius", GaussianBlurNodeRadiusDefault, 0, 10),
         NodePort::create(GaussianBlurNodeInputPortKeyMixAmount, NodePortType::Float, "Mix", 1.0f, 0.0f, 1.0f),
     };
