@@ -33,3 +33,5 @@ public:
 private:
     void setupShaderForBlendMode(const BlendMode mode);
 };
+
+static const BlendNode::BlendMode BlendNodeBlendModeDefault = BlendNode::BlendMode::Over;

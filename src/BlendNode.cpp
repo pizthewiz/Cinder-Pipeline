@@ -24,10 +24,6 @@ const std::string FragmentShaderBlend = R"(
 
     out vec4 oFragColor;
 
-    #ifndef DEFAULT_OVERRIDE
-        #define OVER
-    #endif
-
     void main() {
         vec4 baseColor = texture(image, vTexCoord0);
         vec4 blendColor = texture(blendImage, vTexCoord0);
@@ -57,7 +53,7 @@ BlendNode::BlendNode() {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
         NodePort::create(BlendNodeInputPortKeyBlendImage, NodePortType::FBOImage),
         NodePort::create(BlendNodeInputPortKeyBlendMode, NodePortType::Index, "Mode",
-          static_cast<int>(BlendMode::Over), {static_cast<int>(BlendMode::Subtract), static_cast<int>(BlendMode::Over), static_cast<int>(BlendMode::Multiply)}, {"Subtract", "Over", "Multiply"}),
+          static_cast<int>(BlendNodeBlendModeDefault), {static_cast<int>(BlendMode::Subtract), static_cast<int>(BlendMode::Over), static_cast<int>(BlendMode::Multiply)}, {"Subtract", "Over", "Multiply"}),
     };
     setInputPorts(inputPorts);
 
@@ -67,8 +63,7 @@ BlendNode::BlendNode() {
         BlendMode mode = static_cast<BlendMode>(getInputPortForKey(BlendNodeInputPortKeyBlendMode)->getValues().at(index));
         setupShaderForBlendMode(mode);
     });
-
-    setupShader(sVertexShaderPassThrough, FragmentShaderBlend);
+    setupShaderForBlendMode(BlendNodeBlendModeDefault);
 }
 
 BlendNode::~BlendNode() {
@@ -89,7 +84,6 @@ void BlendNode::render(const FBOImageRef& outputFBOImage) {
 
 void BlendNode::setupShaderForBlendMode(BlendMode mode) {
     auto format = gl::GlslProg::Format().vertex(sVertexShaderPassThrough).fragment(FragmentShaderBlend);
-    format.define("DEFAULT_OVERRIDE");
     switch (mode) {
         case BlendMode::Subtract:
             format.define("SUBTRACT");
