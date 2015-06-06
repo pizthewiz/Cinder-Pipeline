@@ -41,7 +41,7 @@ const std::string FragmentShaderTint = R"(
 TintNode::TintNode() {
     std::vector<NodePortRef> inputPorts = {
         NodePort::create(NodeInputPortKeyImage, NodePortType::FBOImage),
-        NodePort::create(TintNodeInputPortKeyColor, NodePortType::Color, "Color", ColorAf(1.0f, 1.0f, 1.0f, 1.0f)),
+        NodePort::create(TintNodeInputPortKeyColor, NodePortType::Color, "Color", TintNodeTintColorDefault),
         NodePort::create(TintNodeInputPortKeyMix, NodePortType::Float, "Mix", 1.0f, 0.0f, 1.0f),
     };
     setInputPorts(inputPorts);

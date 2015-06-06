@@ -16,6 +16,7 @@ typedef std::shared_ptr<class TintNode> TintNodeRef;
 
 static const std::string TintNodeInputPortKeyColor = "tintColor";
 static const std::string TintNodeInputPortKeyMix = "mixAmount";
+static const ci::ColorAf TintNodeTintColorDefault = ci::ColorAf(1.0f, 1.0f, 1.0f, 1.0f);
 
 class TintNode : public EffectorNode {
 public:
