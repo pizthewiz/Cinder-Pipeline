@@ -2,6 +2,7 @@
 ### CONTEXT
 - investigate the [Boost Graph Library](http://www.boost.org/doc/libs/1_55_0/libs/graph/doc/index.html)
 - allow node removal
+- Migrate JsonTree use to JsonCpp for serialization
 - overload >> to allow connections, just to the default "image" port. Maybe node ("image")->("maskImage") otherNode
 - investigate [cereal](https://github.com/USCiLab/cereal) for serialization and deserialization
 - load from JSON
@@ -11,20 +12,22 @@
 - mechanism to allow samplers?
 - multi-pass shaders?
 - add debug mechanism to save image to disk of each step of the render tree
+- Some mechanism to allow scaling - e.g. scale before blurring, rescale and blend like suggested [Deus Ex: Human Revolution - Graphics Study](http://www.adriancourreges.com/blog/2015/03/10/deus-ex-human-revolution-graphics-study/)
 
 ### NODE
 - pull shader stuff out of Effector node to allow for shader-based generators
-- validate value type on assignment
+- validate value type in Node::setValueForInputPortKey
 - if not using ci::gl::GlslProg, consider using [GL_ARB_separate_shader_objects](http://www.opengl.org/registry/specs/ARB/separate_shader_objects.txt) on 4.1+. Also see [One Year of Porting](http://www.slideshare.net/slideshow/embed_code/34431339?rel=0#) and [A bit of perspective on OpenGL 4.1 separate programs](http://www.g-truc.net/post-0348.html).
 
 ### NODES
-- create a simple shader-based solid color generator node
-- source node classes: FBOImage, RTT?
-- add a Photoshop-like red overlay to show Vibrance selection strength
-- FXAA node like [triton](https://github.com/johang88/triton/blob/master/Data/core_data/shaders/post/fxaa.glsl)
-- Colorspace conversion nodes! YCoCg/CIELAB
 - Compile vibrance node with preprocessed curve instead of uniform
 - Rename mixAmount to intensity?
+- create a simple shader-based solid color generator node
+- source node classes: FBOImage, RTT?
+- FXAA node like [triton](https://github.com/johang88/triton/blob/master/Data/core_data/shaders/post/fxaa.glsl)
+- Colorspace conversion nodes! YCoCg/CIELAB
+- Add a Photoshop-like red overlay to show Vibrance selection strength?
+- Add an add blend mode
 
 ### ISF NODE
 - support the event input type
@@ -33,7 +36,10 @@
 - support static image resources "IMPORTED"
 
 ### GENERAL
+- Migrate to Log.h for all logging, stop using cinder::app::console!
+- Use CI_ASSERT places that make sense
 - include a sample application
+- integrate [Cinder-Profiler](https://github.com/num3ric/Cinder-Profiler)
 - sprinkle in some [`glGetError`](https://www.opengl.org/wiki/GLAPI/glGetError) use?
 - add some profiling, either [sansumbrella's Pockets](https://github.com/sansumbrella/Pockets/blob/dev/src/pockets/Profiling.h) or a simple cinder::Timer.
 - replace vector with set when uniqueness is needed
