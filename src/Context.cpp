@@ -460,7 +460,7 @@ gl::Texture2dRef Context::evaluate(const NodeRef& node) {
         }
     }
 
-    return std::static_pointer_cast<gl::Texture2d>(mFBO->getTexture(outAttachment));
+    return mFBO->getTexture2d(outAttachment);
 }
 
 #pragma mark - PRIVATE

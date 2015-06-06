@@ -27,7 +27,7 @@ public:
     inline ci::gl::FboRef getFBO() const { return mFBO; }
     inline GLenum getAttachment() const { return mAttachment; }
 
-    ci::gl::TextureBaseRef getTexture() { return mFBO->getTexture(mAttachment); }
+    ci::gl::Texture2dRef getTexture() { return mFBO->getTexture2d(mAttachment); }
 
 private:
     FBOImage(const ci::gl::FboRef& fbo, GLenum attachment) : mFBO(fbo), mAttachment(attachment) {}
