@@ -24,7 +24,7 @@ public:
 
     virtual std::string getName() = 0;
 
-    virtual void render(const FBOImageRef& outputFBOImage) {}
+    virtual void render(const FBOImageRef& outputFBOImage) = 0;
 
 protected:
     EffectorNode() {}
