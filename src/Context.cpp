@@ -382,7 +382,7 @@ std::deque<std::deque<NodeRef>> Context::renderStackForRenderNode(const NodeRef&
         }
 
         for (auto connection : inputConections) {
-            assert(std::find(std::begin(connections), std::end(connections), connection) != std::end(connections));
+            assert(std::find(std::begin(connections), std::end(connections), connection) == std::end(connections));
             connections.push_back(connection);
             walkUp(connection->getSourceNode());
         }
