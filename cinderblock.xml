@@ -23,5 +23,7 @@
     <source>src/TintNode.cpp</source>
     <header>include/BlendNode.h</header>
     <source>src/BlendNode.cpp</source>
+    <header>include/VibranceNode.h</header>
+    <source>src/VibranceNode.cpp</source>
 </block>
 </cinder>
