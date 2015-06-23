@@ -9,7 +9,6 @@
 #pragma once
 
 #include "Node.h"
-#include "Branch.h"
 #include "cinder/gl/Fbo.h"
 
 namespace Cinder { namespace Pipeline {
@@ -50,7 +49,7 @@ public:
     static ContextRef create();
     ~Context();
 
-    // NB - attachmentCount = max FBOImage input ports in any node + 1
+    // NB: the dependency soulver requires that attachmentCount = max FBOImage input ports for any node + 1
     void setup(const ci::ivec2& size, GLenum colorFormat = GL_RGBA8, int attachmentCount = 3);
 
     inline std::vector<NodeRef> getNodes() const { return mNodes; }
@@ -105,8 +104,6 @@ public:
         return mOutputConnections[node][portKey];
     }
 
-    BranchRef branchForNode(const NodeRef& node);
-
     std::string serialize();
     bool serialize(const ci::fs::path& path);
 
@@ -119,7 +116,7 @@ private:
     void disconnectNodes(const NodeRef& sourceNode, const NodePortRef& sourceNodePort, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
     void disconnect(const NodePortConnectionRef& connection);
 
-    std::deque<BranchRef> renderStackForRootBranch(const BranchRef& branch);
+    std::deque<std::deque<NodeRef>> renderStackForRenderNode(const NodeRef& node);
 
     ci::gl::FboRef mFBO;
     GLenum mColorFormat;
@@ -130,9 +127,8 @@ private:
     // {node -> {key -> [connection, ...]}}
     std::map<NodeRef, std::map<std::string, std::vector<NodePortConnectionRef>>> mOutputConnections;
 
-    // cache
     NodeRef mRenderNode;
-    std::deque<BranchRef> mRenderStack;
+    std::deque<std::deque<NodeRef>> mRenderStack;
 };
 
 }}

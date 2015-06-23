@@ -181,71 +181,7 @@ void Context::disconnectNodes(const NodeRef& sourceNode, const NodeRef& destinat
     disconnectNodes(sourceNode, NodeOutputPortKeyImage, destinationNode, NodeInputPortKeyImage);
 }
 
-#pragma mark -
-
-BranchRef Context::branchForNode(const NodeRef& node) {
-    std::map<NodeRef, BranchRef> branchMap;
-    std::deque<NodeRef> nodeStack;
-
-    // create branches
-    NodeRef n = node;
-    while (n) {
-        if (branchMap.count(n) == 0) {
-            std::deque<NodeRef> nodes;
-
-            NodeRef n2 = n;
-            while (n2) {
-                nodes.push_front(n2);
-
-                std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n2, NodePortType::FBOImage);
-                if (connections.size() == 0) {
-                    n2 = nullptr;
-                } else if (connections.size() == 1) {
-                    NodePortConnectionRef connection = connections.at(0);
-                    n2 = connection->getSourceNode();
-
-                    // branch on multiple outputs
-                    if (getOutputConnectionsForNodeWithPortType(n2, NodePortType::FBOImage).size() > 1) {
-                        nodeStack.push_front(n2);
-                        n2 = nullptr;
-                    }
-                } else if (connections.size() > 1) {
-                    // branch on multiple inputs
-                    for (const NodePortConnectionRef& c : connections) {
-                        nodeStack.push_front(c->getSourceNode());
-                    }
-                    n2 = nullptr;
-                }
-            }
-
-            BranchRef branch = Branch::create(nodes);
-            branchMap[n] = branch;
-        }
-
-        if (nodeStack.empty()) {
-            n = nullptr;
-        } else {
-            n = nodeStack.front();
-            nodeStack.pop_front();
-        }
-    }
-
-    // connect branches
-    for (auto& kv : branchMap) {
-        BranchRef destinationBranch = kv.second;
-        n = destinationBranch->getNodes().front();
-
-        std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
-        for (const NodePortConnectionRef& c : connections) {
-            BranchRef sourceBranch = branchMap[c->getSourceNode()];
-            destinationBranch->connectInputBranch(sourceBranch);
-        }
-    }
-
-    return branchMap[node];
-}
-
-#pragma mark -
+#pragma mark - SERIALIZATION
 
 std::string Context::serialize() {
     std::map<NodeRef, std::string> nodeIdentifierMap;
@@ -348,7 +284,7 @@ bool Context::serialize(const fs::path& path) {
     return true;
 }
 
-#pragma mark -
+#pragma mark - EVALUATION
 
 gl::Texture2dRef Context::evaluate(const NodeRef& node) {
     // rebuild render stack (flush cache) if the stack is empty or the node changes (cache key)
@@ -358,28 +294,30 @@ gl::Texture2dRef Context::evaluate(const NodeRef& node) {
             return n1->getImageInputPortKeys().size() < n2->getImageInputPortKeys().size();
         });
         unsigned int count = mNodes.at(std::distance(mNodes.begin(), result))->getImageInputPortKeys().size();
-        // NB - it appears a single node strand all with single inputs can be evaluated on a single attachment ¯\(°_o)/¯
-        if (count != 1 && mAttachmentCount < count + 1) {
+        // NB: it appears a single node strand with single inputs can technically be evaluated on a single attachment
+        if (mAttachmentCount < count + 1) {
             cinder::app::console() << "ERROR - more attachments (color buffers) required" << std::endl;
+            return nullptr;
         }
 
+        mRenderStack = renderStackForRenderNode(node);
         mRenderNode = node;
-        BranchRef root = branchForNode(mRenderNode);
-        mRenderStack = renderStackForRootBranch(root);
 
 #if defined(DEBUG)
-        // ASCII visualization
         cinder::app::console() << std::string(3, '#') << std::endl;
-        for (const BranchRef& b : mRenderStack) {
-            cinder::app::console() << b->compactDescription() << std::endl;
+        for (auto b : mRenderStack) {
+            for (auto n : b) {
+                std::string name = n->getName();
+                name.resize(3, ' ');
+                cinder::app::console() << "[" << name << "] → ";
+            }
+            cinder::app::console() << std::endl;
         }
-        cinder::app::console() << std::endl;
+        cinder::app::console() << std::string(3, '#') << std::endl;
 #endif
     }
 
     // render branches
-    GLenum outAttachment = 0;
-
     gl::ScopedMatrices matricies;
     gl::ScopedViewport viewport(ivec2(0), mFBO->getSize());
     gl::ScopedFramebuffer fbo(mFBO);
@@ -387,117 +325,115 @@ gl::Texture2dRef Context::evaluate(const NodeRef& node) {
     gl::setMatricesWindow(mFBO->getSize());
     gl::color(Color::white());
 
-    std::vector<GLenum> availableAttachments;
+    std::deque<GLenum> attachmentsQueue;
     for (unsigned int idx = 0; idx < mAttachmentCount; idx++) {
-        availableAttachments.push_back(GL_COLOR_ATTACHMENT0 + idx);
+        attachmentsQueue.push_back(GL_COLOR_ATTACHMENT0 + idx);
     }
     std::map<NodeRef, GLenum> attachmentsMap;
 
-    for (const BranchRef& b : mRenderStack) {
-        size_t attachmentIndex = 0;
-        outAttachment = availableAttachments.at(attachmentIndex);
-        GLenum inAttachment = 0;
+    for (const std::deque<NodeRef>& b : mRenderStack) {
+        for (const NodeRef& n : b) {
+            assert(attachmentsQueue.size() != 0);
+            GLenum outAttachment = attachmentsQueue.front();
+            attachmentsQueue.pop_front();
+            glDrawBuffer(outAttachment);
 
-        for (size_t nodeIdx = 0; nodeIdx < b->getNodes().size(); nodeIdx++) {
-            // TODO - hoist draw buffer assignment
-            NodeRef n = b->getNodes().at(nodeIdx);
-            SourceNodeRef s = std::dynamic_pointer_cast<SourceNode>(n);
-            if (s) {
-                glDrawBuffer(outAttachment);
+            std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
+            for (const NodePortConnectionRef& c : connections) {
+                assert(attachmentsMap.count(c->getSourceNode()) != 0);
+                GLenum inAttachment = attachmentsMap[c->getSourceNode()];
+                // mark attachment for recycle
+                attachmentsMap.erase(c->getSourceNode());
+                attachmentsQueue.push_back(inAttachment);
 
-                FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
-                s->render(outputFBOImage);
-
-                inAttachment = outAttachment;
-            } else {
-                EffectorNodeRef e = std::dynamic_pointer_cast<EffectorNode>(n);
-                if (e) {
-                    std::vector<NodePortConnectionRef> connections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
-                    if (connections.size() == 1) {
-                        NodePortConnectionRef c = connections.at(0);
-                        // grab attachment from map when appropriate
-                        if (inAttachment == 0) {
-                            inAttachment = attachmentsMap[c->getSourceNode()];
-                            attachmentsMap.erase(c->getSourceNode());
-                            availableAttachments.push_back(inAttachment);
-                        }
-                        FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
-                        e->setValueForInputPortKey(inputFBOImage, c->getDestinationPortKey());
-
-                        attachmentIndex = (attachmentIndex + 1) % availableAttachments.size();
-                        outAttachment = availableAttachments.at(attachmentIndex);
-                        glDrawBuffer(outAttachment);
-
-                        FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
-                        e->render(outputFBOImage);
-
-                        inAttachment = outAttachment;
-                    } else if (connections.size() > 1) {
-                        for (const NodePortConnectionRef& c : connections) {
-                            inAttachment = attachmentsMap[c->getSourceNode()];
-                            attachmentsMap.erase(c->getSourceNode());
-                            availableAttachments.push_back(inAttachment);
-
-                            FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
-                            e->setValueForInputPortKey(inputFBOImage, c->getDestinationPortKey());
-                        }
-
-                        glDrawBuffer(outAttachment);
-
-                        FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
-                        e->render(outputFBOImage);
-                        
-                        inAttachment = outAttachment;
-                    }
-                }
+                FBOImageRef inputFBOImage = FBOImage::create(mFBO, inAttachment);
+                n->setValueForInputPortKey(inputFBOImage, c->getDestinationPortKey());
             }
 
-            // stash output attachment and accompanying node when branch concludes
-            if (nodeIdx == b->getNodes().size() - 1) {
-                attachmentsMap[n] = outAttachment;
-                availableAttachments.erase(std::find(availableAttachments.begin(), availableAttachments.end(), outAttachment));
-            }
+            FBOImageRef outputFBOImage = FBOImage::create(mFBO, outAttachment);
+            n->render(outputFBOImage);
+
+            attachmentsMap[n] = outAttachment;
         }
     }
 
-    return mFBO->getTexture2d(outAttachment);
+    return mFBO->getTexture2d(attachmentsMap[mRenderNode]);
 }
 
 #pragma mark - PRIVATE
 
-std::deque<BranchRef> Context::renderStackForRootBranch(const BranchRef& branch) {
-    std::deque<BranchRef> renderStack;
-    std::deque<BranchRef> branchStack;
+std::deque<std::deque<NodeRef>> Context::renderStackForRenderNode(const NodeRef& node) {
+    // dependency solver via three-pass stratagem:
+    //  [1] find valid connections and leaf nodes required for render node evaluation
+    //  [2] calculate max distance from leaf nodes to render node
+    //  [3] create a render stack from the bottom up, choose cheap first
 
-    BranchRef b = branch;
-    while (b) {
-        renderStack.push_front(b);
-
-        std::vector<BranchConnectionRef> inputConnections = b->getInputConnections();
-        if (inputConnections.empty()) {
-            if (branchStack.empty()) {
-                b = nullptr;
-            } else {
-                b = branchStack.front();
-                branchStack.pop_front();
+    // [1] generate list of valid connections and leaf nodes
+    std::vector<NodePortConnectionRef> connections;
+    std::vector<NodeRef> leafNodes;
+    std::function<void (NodeRef)> walkUp = [&](NodeRef n) {
+        auto inputConections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
+        if (inputConections.empty()) {
+            // avoid duplicates
+            if (std::find(std::begin(leafNodes), std::end(leafNodes), n) ==  std::end(leafNodes)) {
+                leafNodes.push_back(n);
             }
-        } else {
-            // sort by cost DESC
-            std::vector<BranchConnectionRef> sortedInputConnections = inputConnections;
-            std::sort(sortedInputConnections.begin(), sortedInputConnections.end(), [](const BranchConnectionRef& c1, const BranchConnectionRef& c2) {
-                return c1->getInputCost() > c2->getInputCost();
-            });
+            return;
+        }
 
-            // follow cheapest path
-            b = sortedInputConnections.back()->getSourceBranch();
-            sortedInputConnections.pop_back();
+        for (auto connection : inputConections) {
+            assert(std::find(std::begin(connections), std::end(connections), connection) != std::end(connections));
+            connections.push_back(connection);
+            walkUp(connection->getSourceNode());
+        }
+    };
+    walkUp(node);
 
-            // push the others
-            for (const BranchConnectionRef& c : sortedInputConnections) {
-                branchStack.push_front(c->getSourceBranch());
+    // [2] calculate max distances from leaf node to render node
+    std::map<NodePortConnectionRef, int> downEdgeCostMap;
+    std::function<void (NodeRef)> walkDown = [&](NodeRef n) {
+        int cost = 0;
+        for (auto connection : getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage)) {
+            if (downEdgeCostMap.count(connection) != 0 && downEdgeCostMap[connection] > cost) {
+                cost = downEdgeCostMap[connection];
             }
         }
+        cost++;
+
+        // TODO: use some sort of std::filter
+        for (auto connection : getOutputConnectionsForNodeWithPortType(n, NodePortType::FBOImage)) {
+            if (std::find(std::begin(connections), std::end(connections), connection) != std::end(connections)) {
+                downEdgeCostMap[connection] = cost;
+                walkDown(connection->getDestinationNode());
+            }
+        }
+    };
+    for (auto n : leafNodes) {
+        walkDown(n);
     }
+
+    // [3] create render stack
+    std::deque<std::deque<NodeRef>> renderStack = {{}};
+    std::function<void (NodeRef)> upStack = [&](NodeRef n) {
+        renderStack.front().push_front(n);
+
+        std::vector<NodePortConnectionRef> sortedInputConnections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
+        std::sort(sortedInputConnections.begin(), sortedInputConnections.end(), [&](const NodePortConnectionRef& c1, const NodePortConnectionRef& c2) {
+            return downEdgeCostMap[c1] < downEdgeCostMap[c2];
+        });
+
+        if (!sortedInputConnections.empty()) {
+            auto connection = sortedInputConnections.front();
+            sortedInputConnections.erase(sortedInputConnections.begin());
+            upStack(connection->getSourceNode());
+
+            for (auto connection : sortedInputConnections) {
+                renderStack.push_front(std::deque<NodeRef> ());
+                upStack(connection->getSourceNode());
+            }
+        }
+    };
+    upStack(node);
 
     return renderStack;
 }

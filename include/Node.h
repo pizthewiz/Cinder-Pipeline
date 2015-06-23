@@ -117,6 +117,8 @@ public:
         mInputPortValueChangedHandlerMap[key] = handler;
     }
 
+    virtual void render(const FBOImageRef& outputFBOImage) = 0;
+
 protected:
     template <typename T>
     boost::any clampValue(const boost::any& value, const boost::any& minimum, const boost::any& maximum);
