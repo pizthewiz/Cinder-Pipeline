@@ -15,7 +15,6 @@
     <header>include/TextureSourceNode.h</header>
     <header>include/EffectorNode.h</header>
     <source>src/EffectorNode.cpp</source>
-    <header>include/Branch.h</header>
     <header>include/Context.h</header>
     <source>src/Context.cpp</source>
     <header>include/GaussianBlurNode.h</header>
