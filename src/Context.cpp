@@ -11,6 +11,7 @@
 #include "EffectorNode.h"
 #include "cinder/Utilities.h"
 #include "cinder/Json.h"
+#include "cinder/Log.h"
 
 #include "boost/format.hpp"
 
@@ -36,64 +37,56 @@ void Context::setup(const ivec2& size, GLenum colorFormat, int attachmentCount) 
         return;
     }
 
-#if defined(DEBUG)
-    const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-    cinder::app::console() << "GL_RENDERER: " << renderer << std::endl;
-    const char* vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-    cinder::app::console() << "GL_VENDOR: " << vendor << std::endl;
-    const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    cinder::app::console() << "GL_VERSION: " << version << std::endl;
-    const char* shadingLanguageVersion = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
-    cinder::app::console() << "GL_SHADING_LANGUAGE_VERSION: " << shadingLanguageVersion << std::endl;
+    // dump capabilities
+//    CI_LOG_V(std::string(13, '-'));
+//    const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+//    CI_LOG_V(str(boost::format("GL_RENDERER: %1%") % renderer));
+//    const char* vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+//    CI_LOG_V(str(boost::format("GL_VENDOR: %1%") % vendor));
+//    const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+//    CI_LOG_V(str(boost::format("GL_VERSION: %1%") % version));
+//    const char* shadingLanguageVersion = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+//    CI_LOG_V(str(boost::format("GL_SHADING_LANGUAGE_VERSION: %1%") % shadingLanguageVersion));
+//
+//    CI_LOG_V("GL_EXTENSIONS: ");
+//    GLint extensionCount = 0;
+//    glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+//    for (GLint idx = 0; idx < extensionCount; idx++) {
+//        std::string extension(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, idx)));
+//        CI_LOG_V(str(boost::format("  %1%") % extension));
+//    }
+//
+//    GLint texSize;
+//    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texSize);
+//    CI_LOG_V(str(boost::format("GL_MAX_TEXTURE_SIZE: %1%") % texSize));
+//    glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &texSize);
+//    CI_LOG_V(str(boost::format("GL_MAX_3D_TEXTURE_SIZE: %1%") % texSize));
+//    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texSize);
+//    CI_LOG_V(str(boost::format("GL_MAX_TEXTURE_IMAGE_UNITS: %1%") % texSize));
+//    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &texSize);
+//    CI_LOG_V(str(boost::format("GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: %1%") % texSize));
+//    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &texSize);
+//    CI_LOG_V(str(boost::format("GL_MAX_COLOR_ATTACHMENTS: %1%") % texSize));
+//    CI_LOG_V(std::string(13, '-'));
 
-    cinder::app::console() << "GL_EXTENSIONS: " << std::endl;
-    GLint extensionCount = 0;
-    glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
-    for (GLint idx = 0; idx < extensionCount; idx++) {
-        std::string extension(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, idx)));
-        cinder::app::console() << " " << extension << std::endl;
-    }
-
+    // checks
     GLint texSize;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texSize);
-    cinder::app::console() << "GL_MAX_TEXTURE_SIZE: " << texSize << std::endl;
-    glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &texSize);
-    cinder::app::console() << "GL_MAX_3D_TEXTURE_SIZE: " << texSize << std::endl;
-    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texSize);
-    cinder::app::console() << "GL_MAX_TEXTURE_IMAGE_UNITS: " << texSize << std::endl;
-    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &texSize);
-    cinder::app::console() << "GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: " << texSize << std::endl;
+    CI_ASSERT_MSG(texSize >= size.x, str(boost::format("width %1% exceeds maximum texture size %2%") % size.x % texSize).c_str());
+    CI_ASSERT_MSG(texSize >= size.y, str(boost::format("height %1% exceeds maximum texture size %2%") % size.y % texSize).c_str());
     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &texSize);
-    cinder::app::console() << "GL_MAX_COLOR_ATTACHMENTS: " << texSize << std::endl;
-    
-    cinder::app::console() << std::string(13, '-') << std::endl;
-#endif
+    CI_ASSERT_MSG(GL_MAX_COLOR_ATTACHMENTS >= attachmentCount, str(boost::format("attachment count %1% exceeds maximum %2%") % attachmentCount % texSize).c_str());
 
-//    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texSize);
-//    if (size.x > texSize) {
-//        // TODO - tile horizontally
-//        cinder::app::console() << "ERROR - setup width '" << size.x << "' exceeds maximum texture size '" << texSize << "', tiling unimplemented" << std::endl;
-//    }
-//    if (size.y > texSize) {
-//        // TODO - tile vertically
-//        cinder::app::console() << "ERROR - setup height '" << size.y << "' exceeds maximum texture size '" << texSize << "', tiling unimplemented" << std::endl;
-//    }
-//
-//    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &texSize);
-//    if (attachments > GL_MAX_COLOR_ATTACHMENTS) {
-//        cinder::app::console() << "ERROR - number of attachments '" << attachments << "' exceeds '" << texSize << "'" << std::endl;
-//    }
-//
 //    float attachmentMemorySizeMB = size.x * size.y * 4 / 1024 / 1024;
-//    float totalSizeMB = attachmentMemorySizeMB * attachments;
+//    float totalSizeMB = attachmentMemorySizeMB * attachmentCount;
 //
 //    if (gl::isExtensionAvailable("GL_NV_texture_barrier")) {
 //        if (texSize >= 2 * size.x && texSize >= size.y) {
-//            // TODO - double-wide
+//            // TODO: double-wide
 //        } else if (texSize >= 2 * size.y && texSize >= size.x) {
-//            // TODO - double-tall
+//            // TODO: double-tall
 //        } else {
-//            // TODO - tile
+//            // TODO: tile
 //        }
 //    }
 
@@ -296,25 +289,24 @@ gl::Texture2dRef Context::evaluate(const NodeRef& node) {
         unsigned int count = mNodes.at(std::distance(mNodes.begin(), result))->getImageInputPortKeys().size();
         // NB: it appears a single node strand with single inputs can technically be evaluated on a single attachment
         if (mAttachmentCount < count + 1) {
-            cinder::app::console() << "ERROR - more attachments (color buffers) required" << std::endl;
+            CI_LOG_E("more attachments (color buffers) required");
             return nullptr;
         }
 
         mRenderStack = renderStackForRenderNode(node);
         mRenderNode = node;
 
-#if defined(DEBUG)
-        cinder::app::console() << std::string(3, '#') << std::endl;
+        // dump render stack contents
+        CI_LOG_V(std::string(3, '#'));
         for (auto b : mRenderStack) {
             for (auto n : b) {
                 std::string name = n->getName();
                 name.resize(3, ' ');
-                cinder::app::console() << "[" << name << "] → ";
+                CI_LOG_V(str(boost::format("[%1%]") % name));
             }
-            cinder::app::console() << std::endl;
+            CI_LOG_V("");
         }
-        cinder::app::console() << std::string(3, '#') << std::endl;
-#endif
+        CI_LOG_V(std::string(3, '#'));
     }
 
     // render branches
