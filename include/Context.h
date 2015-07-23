@@ -107,6 +107,7 @@ public:
     std::string serialize();
     bool serialize(const ci::fs::path& path);
 
+    std::deque<std::deque<NodeRef>> renderStackForRenderNode(const NodeRef& node);
     ci::gl::Texture2dRef evaluate(const NodeRef& node);
 
 private:
@@ -115,8 +116,6 @@ private:
     void connectNodes(const NodeRef& sourceNode, const NodePortRef& sourceNodePort, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
     void disconnectNodes(const NodeRef& sourceNode, const NodePortRef& sourceNodePort, const NodeRef& destinationNode, const NodePortRef& destinationNodePort);
     void disconnect(const NodePortConnectionRef& connection);
-
-    std::deque<std::deque<NodeRef>> renderStackForRenderNode(const NodeRef& node);
 
     ci::gl::FboRef mFBO;
     GLenum mColorFormat;

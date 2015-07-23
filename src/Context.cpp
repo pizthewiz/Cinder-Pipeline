@@ -279,6 +279,83 @@ bool Context::serialize(const fs::path& path) {
 
 #pragma mark - EVALUATION
 
+std::deque<std::deque<NodeRef>> Context::renderStackForRenderNode(const NodeRef& node) {
+    // dependency solver via three-pass stratagem:
+    //  [1] find valid connections and leaf nodes required for render node evaluation
+    //  [2] calculate max distance from leaf nodes to render node
+    //  [3] create a render stack from the bottom up, choose cheap first
+
+    // [1] generate list of valid connections and leaf nodes
+    std::vector<NodePortConnectionRef> connections;
+    std::vector<NodeRef> leafNodes;
+    std::function<void (NodeRef)> walkUp = [&](NodeRef n) {
+        auto inputConections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
+        if (inputConections.empty()) {
+            // avoid duplicates
+            if (std::find(std::begin(leafNodes), std::end(leafNodes), n) ==  std::end(leafNodes)) {
+                leafNodes.push_back(n);
+            }
+            return;
+        }
+
+        for (auto connection : inputConections) {
+            assert(std::find(std::begin(connections), std::end(connections), connection) == std::end(connections));
+            connections.push_back(connection);
+            walkUp(connection->getSourceNode());
+        }
+    };
+    walkUp(node);
+
+    // [2] calculate max distances from leaf node to render node
+    std::map<NodePortConnectionRef, int> downEdgeCostMap;
+    std::function<void (NodeRef)> walkDown = [&](NodeRef n) {
+        int cost = 0;
+        for (auto connection : getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage)) {
+            if (downEdgeCostMap.count(connection) != 0 && downEdgeCostMap[connection] > cost) {
+                cost = downEdgeCostMap[connection];
+            }
+        }
+        cost++;
+
+        // TODO: use some sort of std::filter
+        for (auto connection : getOutputConnectionsForNodeWithPortType(n, NodePortType::FBOImage)) {
+            if (std::find(std::begin(connections), std::end(connections), connection) != std::end(connections)) {
+                downEdgeCostMap[connection] = cost;
+                walkDown(connection->getDestinationNode());
+            }
+        }
+    };
+    for (auto n : leafNodes) {
+        walkDown(n);
+    }
+
+    // [3] create render stack
+    std::deque<std::deque<NodeRef>> renderStack = {{}};
+    std::function<void (NodeRef)> upStack = [&](NodeRef n) {
+        renderStack.front().push_front(n);
+
+        std::vector<NodePortConnectionRef> sortedInputConnections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
+        std::sort(sortedInputConnections.begin(), sortedInputConnections.end(), [&](const NodePortConnectionRef& c1, const NodePortConnectionRef& c2) {
+            return downEdgeCostMap[c1] < downEdgeCostMap[c2];
+        });
+
+        if (!sortedInputConnections.empty()) {
+            auto connection = sortedInputConnections.front();
+            sortedInputConnections.erase(sortedInputConnections.begin());
+            upStack(connection->getSourceNode());
+            
+            for (auto connection : sortedInputConnections) {
+                renderStack.push_front(std::deque<NodeRef> ());
+                upStack(connection->getSourceNode());
+            }
+        }
+    };
+    upStack(node);
+    
+    return renderStack;
+}
+
+
 gl::Texture2dRef Context::evaluate(const NodeRef& node) {
     // rebuild render stack (flush cache) if the stack is empty or the node changes (cache key)
     if (mRenderStack.size() == 0 || node != mRenderNode) {
@@ -350,84 +427,6 @@ gl::Texture2dRef Context::evaluate(const NodeRef& node) {
     }
 
     return mFBO->getTexture2d(attachmentsMap[mRenderNode]);
-}
-
-#pragma mark - PRIVATE
-
-std::deque<std::deque<NodeRef>> Context::renderStackForRenderNode(const NodeRef& node) {
-    // dependency solver via three-pass stratagem:
-    //  [1] find valid connections and leaf nodes required for render node evaluation
-    //  [2] calculate max distance from leaf nodes to render node
-    //  [3] create a render stack from the bottom up, choose cheap first
-
-    // [1] generate list of valid connections and leaf nodes
-    std::vector<NodePortConnectionRef> connections;
-    std::vector<NodeRef> leafNodes;
-    std::function<void (NodeRef)> walkUp = [&](NodeRef n) {
-        auto inputConections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
-        if (inputConections.empty()) {
-            // avoid duplicates
-            if (std::find(std::begin(leafNodes), std::end(leafNodes), n) ==  std::end(leafNodes)) {
-                leafNodes.push_back(n);
-            }
-            return;
-        }
-
-        for (auto connection : inputConections) {
-            assert(std::find(std::begin(connections), std::end(connections), connection) == std::end(connections));
-            connections.push_back(connection);
-            walkUp(connection->getSourceNode());
-        }
-    };
-    walkUp(node);
-
-    // [2] calculate max distances from leaf node to render node
-    std::map<NodePortConnectionRef, int> downEdgeCostMap;
-    std::function<void (NodeRef)> walkDown = [&](NodeRef n) {
-        int cost = 0;
-        for (auto connection : getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage)) {
-            if (downEdgeCostMap.count(connection) != 0 && downEdgeCostMap[connection] > cost) {
-                cost = downEdgeCostMap[connection];
-            }
-        }
-        cost++;
-
-        // TODO: use some sort of std::filter
-        for (auto connection : getOutputConnectionsForNodeWithPortType(n, NodePortType::FBOImage)) {
-            if (std::find(std::begin(connections), std::end(connections), connection) != std::end(connections)) {
-                downEdgeCostMap[connection] = cost;
-                walkDown(connection->getDestinationNode());
-            }
-        }
-    };
-    for (auto n : leafNodes) {
-        walkDown(n);
-    }
-
-    // [3] create render stack
-    std::deque<std::deque<NodeRef>> renderStack = {{}};
-    std::function<void (NodeRef)> upStack = [&](NodeRef n) {
-        renderStack.front().push_front(n);
-
-        std::vector<NodePortConnectionRef> sortedInputConnections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
-        std::sort(sortedInputConnections.begin(), sortedInputConnections.end(), [&](const NodePortConnectionRef& c1, const NodePortConnectionRef& c2) {
-            return downEdgeCostMap[c1] < downEdgeCostMap[c2];
-        });
-
-        if (!sortedInputConnections.empty()) {
-            auto connection = sortedInputConnections.front();
-            sortedInputConnections.erase(sortedInputConnections.begin());
-            upStack(connection->getSourceNode());
-
-            for (auto connection : sortedInputConnections) {
-                renderStack.push_front(std::deque<NodeRef> ());
-                upStack(connection->getSourceNode());
-            }
-        }
-    };
-    upStack(node);
-
-    return renderStack;
 }
 
 }}
