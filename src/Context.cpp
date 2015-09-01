@@ -13,8 +13,6 @@
 #include "cinder/Json.h"
 #include "cinder/Log.h"
 
-#include "boost/format.hpp"
-
 using namespace ci;
 
 namespace Cinder { namespace Pipeline {
@@ -38,44 +36,44 @@ void Context::setup(const ivec2& size, GLenum colorFormat, int attachmentCount) 
     }
 
     // dump capabilities
-//    CI_LOG_V(std::string(13, '-'));
-//    const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-//    CI_LOG_V(str(boost::format("GL_RENDERER: %1%") % renderer));
-//    const char* vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-//    CI_LOG_V(str(boost::format("GL_VENDOR: %1%") % vendor));
-//    const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-//    CI_LOG_V(str(boost::format("GL_VERSION: %1%") % version));
-//    const char* shadingLanguageVersion = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
-//    CI_LOG_V(str(boost::format("GL_SHADING_LANGUAGE_VERSION: %1%") % shadingLanguageVersion));
-//
-//    CI_LOG_V("GL_EXTENSIONS: ");
-//    GLint extensionCount = 0;
-//    glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
-//    for (GLint idx = 0; idx < extensionCount; idx++) {
-//        std::string extension(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, idx)));
-//        CI_LOG_V(str(boost::format("  %1%") % extension));
-//    }
-//
+    CI_LOG_V(std::string(13, '-'));
+    const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+    CI_LOG_V("GL_RENDERER: " + toString(renderer));
+    const char* vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+    CI_LOG_V("GL_VENDOR: " + toString(vendor));
+    const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+    CI_LOG_V("GL_VERSION: " + toString(version));
+    const char* shadingLanguageVersion = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+    CI_LOG_V("GL_SHADING_LANGUAGE_VERSION: " + toString(shadingLanguageVersion));
+
+    CI_LOG_V("GL_EXTENSIONS: ");
+    GLint extensionCount = 0;
+    glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+    for (GLint idx = 0; idx < extensionCount; idx++) {
+        std::string extension(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, idx)));
+        CI_LOG_V("  " + toString(extension));
+    }
+
 //    GLint texSize;
 //    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texSize);
-//    CI_LOG_V(str(boost::format("GL_MAX_TEXTURE_SIZE: %1%") % texSize));
+//    CI_LOG_V("GL_MAX_TEXTURE_SIZE: " + toString(texSize));
 //    glGetIntegerv(GL_MAX_3D_TEXTURE_SIZE, &texSize);
-//    CI_LOG_V(str(boost::format("GL_MAX_3D_TEXTURE_SIZE: %1%") % texSize));
+//    CI_LOG_V("GL_MAX_3D_TEXTURE_SIZE: " + toString(texSize));
 //    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, &texSize);
-//    CI_LOG_V(str(boost::format("GL_MAX_TEXTURE_IMAGE_UNITS: %1%") % texSize));
+//    CI_LOG_V("GL_MAX_TEXTURE_IMAGE_UNITS: " + toString(texSize));
 //    glGetIntegerv(GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS, &texSize);
-//    CI_LOG_V(str(boost::format("GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: %1%") % texSize));
+//    CI_LOG_V("GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS: " + toString(texSize));
 //    glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &texSize);
-//    CI_LOG_V(str(boost::format("GL_MAX_COLOR_ATTACHMENTS: %1%") % texSize));
+//    CI_LOG_V("GL_MAX_COLOR_ATTACHMENTS: " + toString(texSize));
 //    CI_LOG_V(std::string(13, '-'));
 
     // checks
     GLint texSize;
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texSize);
-    CI_ASSERT_MSG(texSize >= size.x, str(boost::format("width %1% exceeds maximum texture size %2%") % size.x % texSize).c_str());
-    CI_ASSERT_MSG(texSize >= size.y, str(boost::format("height %1% exceeds maximum texture size %2%") % size.y % texSize).c_str());
+    CI_ASSERT_MSG(texSize >= size.x, ("width " + toString(size.x) + " exceeds maximum texture size " + toString(texSize)).c_str());
+    CI_ASSERT_MSG(texSize >= size.y, ("height " + toString(size.y) + " exceeds maximum texture size " + toString(texSize)).c_str());
     glGetIntegerv(GL_MAX_COLOR_ATTACHMENTS, &texSize);
-    CI_ASSERT_MSG(GL_MAX_COLOR_ATTACHMENTS >= attachmentCount, str(boost::format("attachment count %1% exceeds maximum %2%") % attachmentCount % texSize).c_str());
+    CI_ASSERT_MSG(GL_MAX_COLOR_ATTACHMENTS >= attachmentCount, ("attachment count " + toString(attachmentCount) + " exceeds maximum " + toString(texSize)).c_str());
 
 //    float attachmentMemorySizeMB = size.x * size.y * 4 / 1024 / 1024;
 //    float totalSizeMB = attachmentMemorySizeMB * attachmentCount;
@@ -180,7 +178,7 @@ std::string Context::serialize() {
     std::map<NodeRef, std::string> nodeIdentifierMap;
     for (size_t idx = 0; idx < mNodes.size(); idx++) {
         const NodeRef& n = mNodes.at(idx);
-        nodeIdentifierMap[n] = str(boost::format("%1%-%2%") % n->getName() % idx);
+        nodeIdentifierMap[n] = n->getName() + "-" + toString(idx);
     }
 
     JsonTree rootObject = JsonTree::makeObject();
@@ -292,7 +290,7 @@ std::deque<std::deque<NodeRef>> Context::renderStackForRenderNode(const NodeRef&
         auto inputConections = getInputConnectionsForNodeWithPortType(n, NodePortType::FBOImage);
         if (inputConections.empty()) {
             // avoid duplicates
-            if (std::find(std::begin(leafNodes), std::end(leafNodes), n) ==  std::end(leafNodes)) {
+            if (std::find(std::begin(leafNodes), std::end(leafNodes), n) == std::end(leafNodes)) {
                 leafNodes.push_back(n);
             }
             return;
@@ -379,7 +377,7 @@ gl::Texture2dRef Context::evaluate(const NodeRef& node) {
             for (auto n : b) {
                 std::string name = n->getName();
                 name.resize(3, ' ');
-                CI_LOG_V(str(boost::format("[%1%]") % name));
+                CI_LOG_V("[" + name + "]");
             }
             CI_LOG_V("");
         }
