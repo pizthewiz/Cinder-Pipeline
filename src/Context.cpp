@@ -36,24 +36,24 @@ void Context::setup(const ivec2& size, GLenum colorFormat, int attachmentCount) 
     }
 
     // dump capabilities
-    CI_LOG_V(std::string(13, '-'));
-    const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
-    CI_LOG_V("GL_RENDERER: " + toString(renderer));
-    const char* vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
-    CI_LOG_V("GL_VENDOR: " + toString(vendor));
-    const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
-    CI_LOG_V("GL_VERSION: " + toString(version));
-    const char* shadingLanguageVersion = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
-    CI_LOG_V("GL_SHADING_LANGUAGE_VERSION: " + toString(shadingLanguageVersion));
-
-    CI_LOG_V("GL_EXTENSIONS: ");
-    GLint extensionCount = 0;
-    glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
-    for (GLint idx = 0; idx < extensionCount; idx++) {
-        std::string extension(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, idx)));
-        CI_LOG_V("  " + toString(extension));
-    }
-
+//    CI_LOG_V(std::string(13, '-'));
+//    const char* renderer = reinterpret_cast<const char*>(glGetString(GL_RENDERER));
+//    CI_LOG_V("GL_RENDERER: " + toString(renderer));
+//    const char* vendor = reinterpret_cast<const char*>(glGetString(GL_VENDOR));
+//    CI_LOG_V("GL_VENDOR: " + toString(vendor));
+//    const char* version = reinterpret_cast<const char*>(glGetString(GL_VERSION));
+//    CI_LOG_V("GL_VERSION: " + toString(version));
+//    const char* shadingLanguageVersion = reinterpret_cast<const char*>(glGetString(GL_SHADING_LANGUAGE_VERSION));
+//    CI_LOG_V("GL_SHADING_LANGUAGE_VERSION: " + toString(shadingLanguageVersion));
+//
+//    CI_LOG_V("GL_EXTENSIONS: ");
+//    GLint extensionCount = 0;
+//    glGetIntegerv(GL_NUM_EXTENSIONS, &extensionCount);
+//    for (GLint idx = 0; idx < extensionCount; idx++) {
+//        std::string extension(reinterpret_cast<const char*>(glGetStringi(GL_EXTENSIONS, idx)));
+//        CI_LOG_V("  " + toString(extension));
+//    }
+//
 //    GLint texSize;
 //    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &texSize);
 //    CI_LOG_V("GL_MAX_TEXTURE_SIZE: " + toString(texSize));
