@@ -3,10 +3,20 @@
 
 **NOTE**: `Cinder-Pipeline` is intended for use with the upcoming 0.9.0 Cinder release.
 
-A `Context` is the container around which nodes are created, connections are made and nodes are evaluated. `Context` evaluates a `Node` by walking up the tree through the node's input connections and constructs a collection of ordered `Branch`.
+A `Context` is the container around which nodes are created, connections are made and nodes are evaluated. `Context` evaluates a `Node` by walking up the tree through the node's input connections and constructs an ordered collection of dependencies.
 A `Node` may have multiple input `NodePort` which are both keyed and typed. Several data types are supported:
 ```C++
-enum class NodePortType {FBOImage, Texture, Bool, Float, Int, Vec2, Color, Index, FilePath};
+enum class NodePortType {
+  FBOImage, // native input/output type for imaging node
+  Texture,  // ci::gl::TextureRef
+  Bool,     // bool
+  Float,    // float
+  Int,      // int
+  Vec2,     // ci::Vec2
+  Color,    // ci::ColorA
+  Index,    // int used to index into port's value vector
+  FilePath  // ci::fs::path
+};
 ```
 Although multiple data types are supported, being an imaging pipeline, dependencies are only calculated on `NodePortType::FBOImage` ports. Supporting that, all `Node` instances have a fixed single output port `NodeOutputPortKeyImage` of type `NodePortType::FBOImage`.
 
@@ -45,7 +55,7 @@ auto resultTexture = context->evaluate(blurNode);
 ```
 
 ### LIMITATIONS
-At present, there is little if any error checking - beware!
+At present, there is little if any error checking, the dependency solver is very naïve and many features are missing - see the [TODO](TODO.md) for more detail.
 
 ### GREETZ
 - Heavily inspired by Rich Eakin's [Cinder-Audio2](https://forum.libcinder.org/topic/rfc-cinder-audio2-available-for-alpha-testing)
