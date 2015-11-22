@@ -62,7 +62,7 @@ GaussianBlurNode::GaussianBlurNode() {
     setInputPorts(inputPorts);
     // NB - output port "image" of type NodePortType::FBOImage is already present
 
-    // setup shader when radius changes
+    // regenerate shader when radius changes
     connectValueForInputPortKeyChangedHandler(GaussianBlurNodeInputPortKeyRadius, [&](const std::string& key, const boost::any& newValue, const boost::any& oldValue) {
         float radius = boost::any_cast<int>(newValue);
         setupShaderForRadius(radius);
