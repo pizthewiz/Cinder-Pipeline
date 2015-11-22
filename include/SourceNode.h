@@ -16,8 +16,8 @@ typedef std::shared_ptr<class SourceNode> SourceNodeRef;
 
 class SourceNode : public Node {
 public:
-    SourceNode() {}
-    virtual ~SourceNode() {}
+    SourceNode() = default;
+    virtual ~SourceNode() = default;
 
     SourceNodeRef getPtr() { return std::static_pointer_cast<SourceNode>(shared_from_this()); }
 

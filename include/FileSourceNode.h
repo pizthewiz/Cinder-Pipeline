@@ -32,7 +32,7 @@ public:
             mTexture = ci::gl::Texture::create(ci::loadImage(path));
         });
     }
-    ~FileSourceNode() {}
+    ~FileSourceNode() = default;
 
     FileSourceNodeRef getPtr() { return std::static_pointer_cast<FileSourceNode>(shared_from_this()); }
 

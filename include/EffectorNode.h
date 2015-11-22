@@ -18,7 +18,7 @@ typedef std::shared_ptr<class EffectorNode> EffectorNodeRef;
 
 class EffectorNode : public Node {
 public:
-    virtual ~EffectorNode() {}
+    virtual ~EffectorNode() = default;
 
     EffectorNodeRef getPtr() { return std::static_pointer_cast<EffectorNode>(shared_from_this()); }
 
@@ -27,7 +27,7 @@ public:
     virtual void render(const FBOImageRef& outputFBOImage) = 0;
 
 protected:
-    EffectorNode() {}
+    EffectorNode() = default;
 
     void setupShader(const ci::DataSourceRef& vertexShader, const ci::DataSourceRef& fragmentShader);
     void setupShader(const std::string& vertexShader, const std::string& fragmentShader);

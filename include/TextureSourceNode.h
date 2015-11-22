@@ -24,7 +24,7 @@ public:
         };
         setInputPorts(inputPorts);
     }
-    ~TextureSourceNode() {}
+    ~TextureSourceNode() = default;
 
     TextureSourceNodeRef getPtr() { return std::static_pointer_cast<TextureSourceNode>(shared_from_this()); }
 
