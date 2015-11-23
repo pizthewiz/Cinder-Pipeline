@@ -1,8 +1,6 @@
 # Cinder-Pipeline
 `Cinder-Pipeline` is an imaging pipeline to construct and evaluate chained shader-based effectors.
 
-**NOTE**: `Cinder-Pipeline` is intended for use with the upcoming 0.9.0 Cinder release.
-
 A `Context` is the container around which nodes are created, connections are made and nodes are evaluated. `Context` evaluates a `Node` by walking up the tree through the node's input connections and constructs an ordered collection of dependencies.
 A `Node` may have multiple input `NodePort` which are both keyed and typed. Several data types are supported:
 ```C++
